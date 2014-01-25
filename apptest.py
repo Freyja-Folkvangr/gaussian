@@ -1,8 +1,3 @@
-'''
-Created on Jan 25, 2014
-
-@author: giuliano
-'''
 # code's author: Giuliano Tognarelli Buono-core
 import logging
 import sys
