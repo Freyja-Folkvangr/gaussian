@@ -286,14 +286,27 @@ def irc():
                 print("NUMBER    Atom    Type        Coords")
                 for item in zMatrix:
                         print(item)
+        def log_zMatrix(zMatrix, Matrix_number):
+            if verbose == True:
+                    log.write("======================Z-MATRIX {}======================\n".format(Matrix_number))
+                    log.write("NUMBER    Atom    Type        Coords\n")
+                    for item in zMatrix:
+                            log.write("{}\n".format(item))
+            else: pass
         def report_angles(internal_angles):
             print("==================INTERNAL-ANGLES===================")
             print("ANGLE                  VALUE")
             for item in internal_angles:
                 print(item)
+        def log_angles(internal_angles):
+            log.write("==================INTERNAL-ANGLES===================\n")
+            log.write("ANGLE                  VALUE\n")
+            for item in internal_angles:
+                log.write("{}\n".format(item))
         try:
                 global n
                 n = 0
+                Matrix_number = 0
                 global file
                 global verbose
                 if verbose == True:
@@ -308,17 +321,12 @@ def irc():
                         print("NOTE 2: Saving APPTEST logs in 'apptest.log'")    
                 checkfile(file)
                 with open(file, "r") as f:
-                    if verbose == True:
-                        log.write("==========================================================\n")
-                        log.write("We read, take and log data we're interested in\n")
-                        log.write("Empty items like '' will be ignored\n")
-                        log.write("If there's another itineration, this step will start over\n")
-                        log.write("==========================================================\n")
                     internal_angles = []
                     zMatrix = []
                     for line in f:
                             n = n + 1
                             if "Z-Matrix orientation" in line:
+                                    Matrix_number = Matrix_number + 1
                                     import linecache
                                     j = 6
                                     while "-----" not in linecache.getline(file, n + j):
@@ -335,25 +343,34 @@ def irc():
                                     import linecache
                                     j = n + 1
                                     while "     " in linecache.getline(file, j):
-                                            x, *y = linecache.getline(file, j).split('      ')
+                                            x, *y = linecache.getline(file, j).split('  ')
                                             for item in y:
-                                                if item == '' or item == '\n': pass
-                                                else:
-                                                    z, *w = item.split('=')
-                                                    if " " in z:
-                                                        p, *q = z.split(' ')
-                                                        for item in q:
-                                                            if item != '':
-                                                                internal_angles.append(Angle(q[0], float(w[0])))
-                                                    else:
-                                                        internal_angles.append(Angle(z, float(w[0])))  
+                                                if item != '':
+                                                    w, *z = item.split('=')
+                                                    if ' ' in w:
+                                                        a, *b = w.split(' ')
+                                                        w=b[0]
+                                                    if (z != [] and z != '' and z != '\n') and ' ' in z[0]:
+                                                        a, *b = z[0].split(' ')
+                                                        if a != '' and a != '\n': z[0] = a
+                                                        else: z[0] = b[0]
+                                                    if z == []: pass
+                                                    else: internal_angles.append(Angle(w, float(z[0])))
                                             j += 1
                                     
                             elif "IRC-IRC-IRC-IRC-IRC" in line:
+                                    if verbose == True:
+                                        if zMatrix != []: log_zMatrix(zMatrix, Matrix_number)
+                                        if internal_angles != []: log_angles(internal_angles)
+                                        log.write("\n\n")
                                     zMatrix = []
                                     internal_angles = []
                                     
                             elif "Normal termination of Gaussian" in line:
+                                if verbose == True:
+                                    if zMatrix != []: log_zMatrix(zMatrix, Matrix_number)
+                                    if internal_angles != []: log_angles(internal_angles)
+                                    log.write("\n\n\n")
                                 if internal_angles != []: report_angles(internal_angles)
                                 if zMatrix != []: report_zMatrix(zMatrix)
 
@@ -365,7 +382,7 @@ def irc():
                         log.write("\n#BV means beta virt eigenvalues\n")
                         log.close()
                 print("Finished")
-        except (RuntimeError, TypeError, ValueError) as inst:
+        except (RuntimeError, TypeError, ValueError, IndexError) as inst:
                 print ("There was an error on IRC")
                 print (type(inst))
                 print (args)
