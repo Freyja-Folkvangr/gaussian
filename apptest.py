@@ -281,8 +281,9 @@ def irc():
                         self.coordinates = coordinates
                 def __str__(self):
                         return "{0.center_number}       {0.atomic_number}     {0.atomic_type}     {0.coordinates}".format(self)
-        def report_zMatrix(zMatrix):
-                print("======================Z-MATRIX======================")
+        def report_zMatrix(zMatrix, Matrix_number):
+                if verbose == True: print("======================Z-MATRIX {}======================".format(Matrix_number))
+                else: print("======================Z-MATRIX======================")
                 print("NUMBER    Atom    Type        Coords")
                 for item in zMatrix:
                         print(item)
@@ -293,13 +294,14 @@ def irc():
                     for item in zMatrix:
                             log.write("{}\n".format(item))
             else: pass
-        def report_angles(internal_angles):
-            print("==================INTERNAL-ANGLES===================")
+        def report_angles(internal_angles, Matrix_number):
+            if verbose == True: print("==================INTERNAL-ANGLES {}===================".format(Matrix_number))
+            else: print("==================INTERNAL-ANGLES===================")
             print("ANGLE                  VALUE")
             for item in internal_angles:
                 print(item)
-        def log_angles(internal_angles):
-            log.write("==================INTERNAL-ANGLES===================\n")
+        def log_angles(internal_angles, Matrix_number):
+            log.write("==================INTERNAL-ANGLES {}===================".format(Matrix_number))
             log.write("ANGLE                  VALUE\n")
             for item in internal_angles:
                 log.write("{}\n".format(item))
@@ -361,18 +363,22 @@ def irc():
                             elif "IRC-IRC-IRC-IRC-IRC" in line:
                                     if verbose == True:
                                         if zMatrix != []: log_zMatrix(zMatrix, Matrix_number)
-                                        if internal_angles != []: log_angles(internal_angles)
+                                        if internal_angles != []: log_angles(internal_angles, Matrix_number)
                                         log.write("\n\n")
+                                        if internal_angles != []: report_angles(internal_angles, Matrix_number)
+                                        if zMatrix != []: report_zMatrix(zMatrix, Matrix_number)
+                                        print()
+
                                     zMatrix = []
                                     internal_angles = []
                                     
                             elif "Normal termination of Gaussian" in line:
                                 if verbose == True:
                                     if zMatrix != []: log_zMatrix(zMatrix, Matrix_number)
-                                    if internal_angles != []: log_angles(internal_angles)
+                                    if internal_angles != []: log_angles(internal_angles, Matrix_number)
                                     log.write("\n\n\n")
-                                if internal_angles != []: report_angles(internal_angles)
-                                if zMatrix != []: report_zMatrix(zMatrix)
+                                if internal_angles != []: report_angles(internal_angles, Matrix_number)
+                                if zMatrix != []: report_zMatrix(zMatrix, Matrix_number)
 
 
                 if verbose == True:
