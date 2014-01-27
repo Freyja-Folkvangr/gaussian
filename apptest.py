@@ -446,7 +446,7 @@ def irc():
                         log.write("\n#BV means beta virt eigenvalues\n")
                         log.close()
                 print("Finished")
-        except (RuntimeError, TypeError, ValueError, IndexError) as inst:
+        except (RuntimeError, TypeError, ValueError, IndexError, OSError) as inst:
                 print ("There was an error on IRC")
                 print (type(inst))
                 print (args)
