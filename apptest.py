@@ -63,6 +63,35 @@ def load_file():
                 return False
 
 def op():
+        class Coordinates:
+            def __init__(self, x=0, y=0, z=0):
+                self.x = x
+                self.y = y
+                self.z = z
+                    
+            def __str__(self):
+                return "<{0.x}, {0.y}, {0.z}>".format(self)
+
+        class Electron:
+                def __init__(self, center_number, atomic_number, atomic_type, coordinates):
+                        self.center_number = center_number
+                        self.atomic_number = atomic_number
+                        self.atomic_type = atomic_type
+                        self.coordinates = coordinates
+                def __str__(self):
+                        return "{0.center_number}       {0.atomic_number}     {0.atomic_type}     {0.coordinates}".format(self)
+        def report_Standard_orientation(Standard_orientation, Matrix_number):
+            if verbose == True: print("================STANDARD ORIENTATION {}================".format(Matrix_number))
+            else: print("================STANDARD ORIENTATION================")
+            print("NUMBER    Atom    Type        Coords")
+            for item in Standard_orientation:
+                print(item)
+        def log_Standard_orientation(Standard_orientation, Matrix_number):
+            if verbose == True:
+                    log.write("================STANDARD ORIENTATION {}================\n".format(Matrix_number))
+                    log.write("NUMBER    Atom    Type        Coords\n")
+                    for item in Standard_orientation:
+                            log.write("{}\n".format(item))
         def report_orbitals(aocc, bocc, avirt, bvirt):
                 try:
                     global n
@@ -101,6 +130,7 @@ def op():
         try:
                 global n
                 n = 0
+                Line_number = 0
                 global file
                 global verbose
                 if verbose == True:
@@ -125,7 +155,11 @@ def op():
                     bocc = []
                     avirt = []
                     bvirt = []
+                    Standard_orientation = []
+                    Matrix_number = 0
+                    Energy = (None, None) #[E, type] Types: 1=Hartree-Fock
                     for line in f:
+                        Line_number += 1
                         if "Alpha  occ. eigenvalues" in line:
                             x, *y = line.split(' --  ')
                             args = y[0].split('  ')
@@ -199,6 +233,23 @@ def op():
                                                    print ("Unknown Error!")
                                                    print (type(err))
                                                    print (err)
+                                                   
+                        elif "Standard orientation" in line:
+                            import linecache
+                            j = 5
+                            Matrix_number += 1
+                            while "-----" not in linecache.getline(file, Line_number + j):
+                                #print("line: {}".format(linecache.getline(file, Line_number + j)))
+                                q, *r = linecache.getline(file, Line_number + j).split(' ')
+                                q = []
+                                for item in r:
+                                        if item != '':
+                                                q.append(item)
+                                coordinates = Coordinates(float(q[3]), float(q[4]), float(q[5]))
+                                electron = Electron(float(q[0]), float(q[1]), float(q[2]), coordinates)
+                                Standard_orientation.append(electron)
+                                j = j + 1
+                            
                         elif "HF=" in line:
                                 if verbose == True:
                                         if n > 1: log.write("Last itineration should be the optimized one\n")
@@ -208,22 +259,25 @@ def op():
                                 x, *y = line.split('HF=')
                                 x, *y = y[0].split('\\')
                                 try:
-                                        E = float(x)
-                                        print()
-                                        print("Hartree-Fock= {}".format(E))
+                                        Energy = (float(x), 1)
                                 except (ValueError) as err:
-                                        print(type(err))
-                                        print(err)
+                                    print("Error with HF (E)")
+                                    print(type(err))
+                                    print(err)
                                 
                         elif "GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad" in line:
                                 if verbose == True and (aocc != [] and avirt != []):
                                         report_orbitals(aocc, bocc, avirt, bvirt)
+                                if Standard_orientation != [] and verbose == True:
+                                        report_Standard_orientation(Standard_orientation, Matrix_number)
+                                        log_Standard_orientation(Standard_orientation, Matrix_number)
                                 """
                                 if aocc != []:print("\naocc\n{}\n".format(aocc))
                                 if bocc != []:print("\nbocc\n{}\n".format(bocc))
                                 if avirt != []:print("\navirt\n{}\n".format(avirt))
                                 if bvirt != []:print("\nbvirt\n{}\n".format(bvirt))
                                 """
+                                Standard_orientation = []
                                 aocc = []
                                 bocc = []
                                 avirt = []
@@ -232,12 +286,15 @@ def op():
                         elif "Normal termination of Gaussian" in line:
                                 if aocc != [] and avirt != []:
                                         report_orbitals(aocc, bocc, avirt, bvirt)
+                                if Standard_orientation != []: report_Standard_orientation(Standard_orientation, Matrix_number)
+                                if verbose == True: log_Standard_orientation(Standard_orientation, Matrix_number)
                                 """
                                 if aocc != []:print("\naocc\n{}\n".format(aocc))
                                 if bocc != []:print("\nbocc\n{}\n".format(bocc))
                                 if avirt != []:print("\navirt\n{}\n".format(avirt))
                                 if bvirt != []:print("\nbvirt\n{}\n".format(bvirt))
                                 """
+                                Standard_orientation = []
                                 aocc = []
                                 bocc = []
                                 avirt = []
@@ -251,6 +308,7 @@ def op():
                         log.write("\n#BO means beta occ eigenvalues\n")
                         log.write("\n#BV means beta virt eigenvalues\n")
                         log.close()
+                if Energy[1] == 1:print("Hartree-Fock= {}".format(Energy[0]))
                 print("Finished")
         except(RuntimeError, TypeError) as inst:
                 print ("There was an error while reading the optimization values")
@@ -297,12 +355,12 @@ def irc():
         def report_angles(internal_angles, Matrix_number):
             if verbose == True: print("==================INTERNAL-ANGLES {}===================".format(Matrix_number))
             else: print("==================INTERNAL-ANGLES===================")
-            print("ANGLE                  VALUE")
+            print("ANGLE                 VALUE")
             for item in internal_angles:
                 print(item)
         def log_angles(internal_angles, Matrix_number):
             log.write("==================INTERNAL-ANGLES {}===================".format(Matrix_number))
-            log.write("ANGLE                  VALUE\n")
+            log.write("ANGLE              VALUE\n")
             for item in internal_angles:
                 log.write("{}\n".format(item))
         try:
