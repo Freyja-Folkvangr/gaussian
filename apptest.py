@@ -383,7 +383,7 @@ def irc():
                         log.write("======================Gaussian09 simple AWK======================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
                         log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
                         log.close()
-                        log = open("gauss09AWK.log", "a")
+                        log = open("gauss09sAWK.log", "a")
                         print("NOTE: Logs are turned on")
                         print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'")    
                 checkfile(file)
