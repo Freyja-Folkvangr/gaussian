@@ -116,13 +116,13 @@ def op():
                     if bocc != []: print ("Alpha results")
                     print("HOMO: {}".format(aocc[len(aocc) - 1]))
                     print("LUMO: {}".format(avirt[0]))
-                    print("μ= {0}   fh= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) / 2), ((avirt[0] - aocc[len(aocc) - 1]) / 2)))
+                    print("μ= {0}   Ηη= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
                     print()
                     if bocc != []:
                         print ("Beta results")
                         print("HOMO: {}".format(bocc[len(bocc) - 1]))
                         print("LUMO: {}".format(bvirt[0]))
-                        print("μ= {0}   fh= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) / 2), ((bvirt[0] - bocc[len(bocc) - 1]) / 2)))
+                        print("μ= {0}   Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
                 except (RuntimeError, TypeError, ValueError) as inst:
                         print ("There was an error while reporting the results")
                         print (type(inst))
@@ -328,7 +328,7 @@ def irc():
                         self.combinations = combinations
                         self.angle = angle
                 def __str__(self):
-                        return "{0.combinations}            {0.angle}".format(self)
+                        return "{0.combinations}            {0.angle}º".format(self)
         class Coordinates:
             def __init__(self, x=0, y=0, z=0):
                 self.x = x
