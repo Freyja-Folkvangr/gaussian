@@ -102,7 +102,7 @@ def op():
                         log.write("\n==========================================================\n")
                         log.write("We organice the data, then we log it\n")
                         log.write("and finally we show final results from\n")
-                        log.write("itineration {} as apptest output\n".format(n))
+                        log.write("itineration {} as Gauss09 sAWK output\n".format(n))
                         log.write("==========================================================\n")
                         log.write("\nAO:\n")
                         log.write(str(aocc))
@@ -116,13 +116,13 @@ def op():
                     if bocc != []: print ("Alpha results")
                     print("HOMO: {}".format(aocc[len(aocc) - 1]))
                     print("LUMO: {}".format(avirt[0]))
-                    print("mu= {0}   fh= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) / 2), ((avirt[0] - aocc[len(aocc) - 1]) / 2)))
+                    print("μ= {0}   fh= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) / 2), ((avirt[0] - aocc[len(aocc) - 1]) / 2)))
                     print()
                     if bocc != []:
                         print ("Beta results")
                         print("HOMO: {}".format(bocc[len(bocc) - 1]))
                         print("LUMO: {}".format(bvirt[0]))
-                        print("mu= {0}   fh= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) / 2), ((bvirt[0] - bocc[len(bocc) - 1]) / 2)))
+                        print("μ= {0}   fh= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) / 2), ((bvirt[0] - bocc[len(bocc) - 1]) / 2)))
                 except (RuntimeError, TypeError, ValueError) as inst:
                         print ("There was an error while reporting the results")
                         print (type(inst))
@@ -135,14 +135,14 @@ def op():
                 global verbose
                 if verbose == True:
                         global log
-                        log = open("apptest.log", "w")
+                        log = open("gauss09sAWK.log", "w")
                         from datetime import datetime
-                        log.write("=============================APPTEST=============================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
+                        log.write("=============================Gauss09 sAWK=============================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
                         log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
                         log.close()
-                        log = open("apptest.log", "a")
+                        log = open("gauss09sAWK.log", "a")
                         print("NOTE: Logs are turned on")
-                        print("NOTE 2: Saving APPTEST logs in 'apptest.log'")    
+                        print("NOTE 2: Saving Gauss09 s AWK logs in 'gauss09sAWK.log'")    
                 checkfile(file)
                 with open(file, "r") as f:
                     if verbose == True:
@@ -157,7 +157,7 @@ def op():
                     bvirt = []
                     Standard_orientation = []
                     Matrix_number = 0
-                    Energy = (None, None) #[E, type] Types: 1=Hartree-Fock
+                    Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
                     for line in f:
                         Line_number += 1
                         if "Alpha  occ. eigenvalues" in line:
@@ -226,6 +226,7 @@ def op():
                                             except (ValueError) as err:
                                                     if verbose == True:
                                                             log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
+                                                            log.write("{1}/n{2}/nDone some automatic fixes../n".format(type(err), err))
                                                     a, *b = item.split(' ')
                                                     aocc.append(float(a))
                                                     aocc.append(float(b[0]))
@@ -259,7 +260,10 @@ def op():
                                 x, *y = line.split('HF=')
                                 x, *y = y[0].split('\\')
                                 try:
-                                        Energy = (float(x), 1)
+                                    if Energy[0] != None and Energy[1] != None and Energy[2] == 0:
+                                        Energy = (float(x), 1, 1)
+                                    else:
+                                        Energy = (float(x), 1, 0)                                        
                                 except (ValueError) as err:
                                     print("Error with HF (E)")
                                     print(type(err))
@@ -308,7 +312,8 @@ def op():
                         log.write("\n#BO means beta occ eigenvalues\n")
                         log.write("\n#BV means beta virt eigenvalues\n")
                         log.close()
-                if Energy[1] == 1:print("Hartree-Fock= {}".format(Energy[0]))
+                if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
+                if Energy[2] == 1: print("-Many HF found, see details in log file")
                 print("Finished")
         except(RuntimeError, TypeError) as inst:
                 print ("There was an error while reading the optimization values")
@@ -371,14 +376,14 @@ def irc():
                 global verbose
                 if verbose == True:
                         global log
-                        log = open("apptest.log", "w")
+                        log = open("gauss09sAWK.log", "w")
                         from datetime import datetime
-                        log.write("=============================APPTEST=============================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
+                        log.write("======================Gaussian09 simple AWK======================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
                         log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
                         log.close()
-                        log = open("apptest.log", "a")
+                        log = open("gausAWK.log", "a")
                         print("NOTE: Logs are turned on")
-                        print("NOTE 2: Saving APPTEST logs in 'apptest.log'")    
+                        print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'")    
                 checkfile(file)
                 with open(file, "r") as f:
                     internal_angles = []
@@ -465,7 +470,7 @@ def main():
                 else: irc()
                 
         root = Tk()
-        root.title("APPTEST")
+        root.title("Gaussian09 simple AWK")
         root.geometry("430x588")
         root.resizable(0, 0)
 
