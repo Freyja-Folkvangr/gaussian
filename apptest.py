@@ -79,17 +79,17 @@ def op():
                         self.atomic_type = atomic_type
                         self.coordinates = coordinates
                 def __str__(self):
-                        return "{0.center_number}       {0.atomic_number}     {0.atomic_type}     {0.coordinates}".format(self)
+                        return "{0.center_number}          {0.atomic_number}       {0.atomic_type}   {0.coordinates}".format(self)
         def report_Standard_orientation(Standard_orientation, Matrix_number):
             if verbose == True: print("================STANDARD ORIENTATION {}================".format(Matrix_number))
             else: print("================STANDARD ORIENTATION================")
-            print("NUMBER    Atom    Type        Coords")
+            print("NUMBER    Atom    Type     Coords")
             for item in Standard_orientation:
                 print(item)
         def log_Standard_orientation(Standard_orientation, Matrix_number):
             if verbose == True:
                     log.write("================STANDARD ORIENTATION {}================\n".format(Matrix_number))
-                    log.write("NUMBER    Atom    Type        Coords\n")
+                    log.write("NUMBER    Atom    Type     Coords\n")
                     for item in Standard_orientation:
                             log.write("{}\n".format(item))
         def report_orbitals(aocc, bocc, avirt, bvirt):
@@ -142,7 +142,7 @@ def op():
                         log.close()
                         log = open("gauss09sAWK.log", "a")
                         print("NOTE: Logs are turned on")
-                        print("NOTE 2: Saving Gauss09 s AWK logs in 'gauss09sAWK.log'")    
+                        print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'")    
                 checkfile(file)
                 with open(file, "r") as f:
                     if verbose == True:
@@ -226,7 +226,7 @@ def op():
                                             except (ValueError) as err:
                                                     if verbose == True:
                                                             log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
-                                                            log.write("{1}/n{2}/nDone some automatic fixes../n".format(type(err), err))
+                                                            log.write("{1}\n{2}\nDone some automatic fixes..\n".format(type(err), err))
                                                     a, *b = item.split(' ')
                                                     aocc.append(float(a))
                                                     aocc.append(float(b[0]))
@@ -240,34 +240,36 @@ def op():
                             j = 5
                             Matrix_number += 1
                             while "-----" not in linecache.getline(file, Line_number + j):
-                                #print("line: {}".format(linecache.getline(file, Line_number + j)))
                                 q, *r = linecache.getline(file, Line_number + j).split(' ')
                                 q = []
                                 for item in r:
                                         if item != '':
                                                 q.append(item)
                                 coordinates = Coordinates(float(q[3]), float(q[4]), float(q[5]))
-                                electron = Electron(float(q[0]), float(q[1]), float(q[2]), coordinates)
+                                electron = Electron(int(q[0]), int(q[1]), int(q[2]), coordinates)
                                 Standard_orientation.append(electron)
                                 j = j + 1
                             
                         elif "HF=" in line:
-                                if verbose == True:
-                                        if n > 1: log.write("Last itineration should be the optimized one\n")
-                                        log.write(line)
-                                elif n > 1: print("Last itineration should be the optimized one")
-                                else: pass
                                 x, *y = line.split('HF=')
                                 x, *y = y[0].split('\\')
                                 try:
                                     if Energy[0] != None and Energy[1] != None and Energy[2] == 0:
                                         Energy = (float(x), 1, 1)
+                                        if verbose == True:
+                                            log.write("HF: {}\n".format(Energy[0]))
                                     else:
-                                        Energy = (float(x), 1, 0)                                        
+                                        Energy = (float(x), 1, 0)
+                                        if verbose == True:
+                                            log.write("HF: {}\n".format(Energy[0]))
                                 except (ValueError) as err:
-                                    print("Error with HF (E)")
-                                    print(type(err))
-                                    print(err)
+                                    print("{} in HF (E)".format(type(err)))
+                                    if verbose == True:
+                                        log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
+                                except (TypeError) as err:
+                                    print("{} in HF (E)".format(type(err)))
+                                    if verbose == True:
+                                        log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
                                 
                         elif "GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad" in line:
                                 if verbose == True and (aocc != [] and avirt != []):
@@ -343,17 +345,17 @@ def irc():
                         self.atomic_type = atomic_type
                         self.coordinates = coordinates
                 def __str__(self):
-                        return "{0.center_number}       {0.atomic_number}     {0.atomic_type}     {0.coordinates}".format(self)
+                        return "{0.center_number}          {0.atomic_number}       {0.atomic_type}      {0.coordinates}".format(self)
         def report_zMatrix(zMatrix, Matrix_number):
                 if verbose == True: print("======================Z-MATRIX {}======================".format(Matrix_number))
                 else: print("======================Z-MATRIX======================")
-                print("NUMBER    Atom    Type        Coords")
+                print("NUMBER    Atom    Type      Coords")
                 for item in zMatrix:
                         print(item)
         def log_zMatrix(zMatrix, Matrix_number):
             if verbose == True:
                     log.write("======================Z-MATRIX {}======================\n".format(Matrix_number))
-                    log.write("NUMBER    Atom    Type        Coords\n")
+                    log.write("NUMBER    Atom    Type      Coords\n")
                     for item in zMatrix:
                             log.write("{}\n".format(item))
             else: pass
@@ -381,7 +383,7 @@ def irc():
                         log.write("======================Gaussian09 simple AWK======================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
                         log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
                         log.close()
-                        log = open("gausAWK.log", "a")
+                        log = open("gauss09AWK.log", "a")
                         print("NOTE: Logs are turned on")
                         print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'")    
                 checkfile(file)
@@ -401,7 +403,7 @@ def irc():
                                                     if item != '':
                                                             q.append(item)
                                             coordinates = Coordinates(float(q[3]), float(q[4]), float(q[5]))
-                                            electron = Electron(float(q[0]), float(q[1]), float(q[2]), coordinates)
+                                            electron = Electron(int(q[0]), int(q[1]), int(q[2]), coordinates)
                                             zMatrix.append(electron)
                                             j = j + 1
                             elif "Interatomic angles" in line:
@@ -446,9 +448,9 @@ def irc():
 
                 if verbose == True:
                         log.write("\n#AO means alpha occ eigenvalues\n")
-                        log.write("\n#AV means alpha virt eigenvalues\n")
-                        log.write("\n#BO means beta occ eigenvalues\n")
-                        log.write("\n#BV means beta virt eigenvalues\n")
+                        log.write("#AV means alpha virt eigenvalues\n")
+                        log.write("#BO means beta occ eigenvalues\n")
+                        log.write("#BV means beta virt eigenvalues\n")
                         log.close()
                 print("Finished")
         except (RuntimeError, TypeError, ValueError, IndexError, OSError) as inst:
