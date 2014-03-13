@@ -457,6 +457,10 @@ def irc():
                 print ("There was an error on IRC")
                 print (type(inst))
                 print (args)
+def scan():
+    print("done")
+    
+
 
 def main():
         global file
@@ -469,7 +473,8 @@ def main():
                 else: verbose = False
                 
                 if int(radioButton_v.get()) == 0: op()
-                else: irc()
+                elif (radioButton_v.get()) == 1: irc()
+                else: scan()
                 
         root = Tk()
         root.title("Gaussian09 simple AWK")
@@ -488,6 +493,8 @@ def main():
         checkBox1 = Checkbutton(root, text="Verbose", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=300, pady=3, sticky=NW, row=1, column=0, columnspan=3)
         
         radioButton_v = IntVar()
+        
+        radioButton1 = Radiobutton(root, text="SCAN", variable=radioButton_v, value=2).grid(padx=104, pady=3, sticky=NW, row=1, column=0, columnspan=2)
         radioButton1 = Radiobutton(root, text="OPT", variable=radioButton_v, value=0).grid(padx=0, pady=3, sticky=NW, row=1, column=0, columnspan=2)
         radioButton2 = Radiobutton(root, text="IRC", variable=radioButton_v, value=1).grid(padx=52, pady=3, sticky=NW, row=1, column=0, columnspan=2)
 
