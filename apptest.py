@@ -11,6 +11,7 @@ verbose = True
 global file
 file = "Select a file to begin"
 
+
 old_stdout = sys.stdout
 
 class StdoutRedirector(object):
@@ -145,6 +146,7 @@ def op():
                         print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'")    
                 checkfile(file)
                 with open(file, "r") as f:
+                    Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
                     if verbose == True:
                         log.write("==========================================================\n")
                         log.write("We read, take and log data we're interested in\n")
@@ -157,7 +159,6 @@ def op():
                     bvirt = []
                     Standard_orientation = []
                     Matrix_number = 0
-                    Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
                     for line in f:
                         Line_number += 1
                         if "Alpha  occ. eigenvalues" in line:
@@ -271,7 +272,7 @@ def op():
                                     if verbose == True:
                                         log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
                                 
-                        elif "GradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGradGrad" in line:
+                        elif "GradGradGradGradGradGradGrad" in line:
                                 if verbose == True and (aocc != [] and avirt != []):
                                         report_orbitals(aocc, bocc, avirt, bvirt)
                                 if Standard_orientation != [] and verbose == True:
@@ -390,6 +391,7 @@ def irc():
                 with open(file, "r") as f:
                     internal_angles = []
                     zMatrix = []
+                    Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
                     for line in f:
                             n = n + 1
                             if "Z-Matrix orientation" in line:
@@ -425,7 +427,7 @@ def irc():
                                                     else: internal_angles.append(Angle(w, float(z[0])))
                                             j += 1
                                     
-                            elif "IRC-IRC-IRC-IRC-IRC" in line:
+                            elif "IRC-IRC-IRC-IRC-IRC" in line or "Initial guess <" in line:
                                     if verbose == True:
                                         if zMatrix != []: log_zMatrix(zMatrix, Matrix_number)
                                         if internal_angles != []: log_angles(internal_angles, Matrix_number)
@@ -437,6 +439,35 @@ def irc():
                                     zMatrix = []
                                     internal_angles = []
                                     
+                            elif "HF=" in line:
+                                x, *y = line.split("HF=")
+                                x, *y = y[0].split("\\")
+                                try:
+                                    tmp=float(x)
+                                except(ValueError):
+                                    p, *q = x.split(",")
+                                    x = p
+                                try:
+                                    if Energy[0] != None and Energy[1] != None and Energy[2] == 0:
+                                        Energy = (float(x), 1, 1)
+                                        if verbose == True:
+                                            log.write("HF: {}\n".format(Energy[0]))
+                                    else:
+                                        Energy = (float(x), 1, 0)
+                                        if verbose == True:
+                                            log.write("HF: {}\n".format(Energy[0]))
+                                except(ValueError) as err:
+                                    
+                                    print("{1} in HF (E)\n{2}\n{3}".format(type(err), err.args, Energy))
+                                    if verbose ==  True:
+                                        log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err.args, Energy))
+                                except(TypeError) as err:
+                                    print("{1} in HF (E)\n{2}\n{3}".format(type(err), err.args, Energy))
+                                    if verbose == True:
+                                        log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err.args, Energy))
+
+                                    
+
                             elif "Normal termination of Gaussian" in line:
                                 if verbose == True:
                                     if zMatrix != []: log_zMatrix(zMatrix, Matrix_number)
@@ -444,6 +475,9 @@ def irc():
                                     log.write("\n\n\n")
                                 if internal_angles != []: report_angles(internal_angles, Matrix_number)
                                 if zMatrix != []: report_zMatrix(zMatrix, Matrix_number)
+
+                                if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
+                                if Energy[2] == 1: print("-Many HF found, see details in log file")
 
 
                 if verbose == True:
@@ -453,11 +487,26 @@ def irc():
                         log.write("#BV means beta virt eigenvalues\n")
                         log.close()
                 print("Finished")
-        except (RuntimeError, TypeError, ValueError, IndexError, OSError) as inst:
+        except (RuntimeError, TypeError, ValueError, OSError) as inst:
                 print ("There was an error on IRC")
                 print (type(inst))
-                print (args)
+                print (inst.args)
 def scan():
+    global file
+    global verbose
+    if verbose == True:
+        global log
+        log = open("gauss09sAWK.log", "w")
+        from datetime import datetime
+        log.write("======================Gaussian09 simple AWK======================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
+        log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
+        log.close()
+        log = open("gauss09sAWK.log", "a")
+        print("NOTE: Logs are turned on")
+        print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'") 
+    checkfile(file)
+    with open(file, "r") as f:
+        Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
     print("done")
     
 
@@ -475,29 +524,34 @@ def main():
                 if int(radioButton_v.get()) == 0: op()
                 elif (radioButton_v.get()) == 1: irc()
                 else: scan()
-                
+        #main window
         root = Tk()
         root.title("Gaussian09 simple AWK")
         root.geometry("430x588")
         root.resizable(0, 0)
 
+        #file browser
         global textBox1_v
         textBox1_v = StringVar()
         textBox1 = Entry(root, textvariable=textBox1_v, width=45, state="disabled").grid(padx=1, pady=5, sticky=NW, columnspan=40)
         textBox1_v.set(file)
-        
+
+        #buttons
         button1 = Button(root, text="...", command=lambda:load_file()).grid(padx=380, pady=2, sticky=NW, row=0, column=0)
         button2 = Button(root, text="Go", command=lambda: go()).grid(padx=380, pady=0, sticky=NW, column=0, row=1, columnspan=4)
-        
+
+        #check boxes
         checkBox1_v = IntVar()
         checkBox1 = Checkbutton(root, text="Verbose", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=300, pady=3, sticky=NW, row=1, column=0, columnspan=3)
         
         radioButton_v = IntVar()
-        
+
+        #radio buttons
         radioButton1 = Radiobutton(root, text="SCAN", variable=radioButton_v, value=2).grid(padx=104, pady=3, sticky=NW, row=1, column=0, columnspan=2)
         radioButton1 = Radiobutton(root, text="OPT", variable=radioButton_v, value=0).grid(padx=0, pady=3, sticky=NW, row=1, column=0, columnspan=2)
         radioButton2 = Radiobutton(root, text="IRC", variable=radioButton_v, value=1).grid(padx=52, pady=3, sticky=NW, row=1, column=0, columnspan=2)
 
+        #text boxes
         textBox1 = Text(root, height=34, width=60, wrap='word')
         textBox1.grid(padx=0, pady=0, row=2, column=0, sticky=NW, columnspan=20, rowspan=70)
         sys.stdout = StdoutRedirector(textBox1)
