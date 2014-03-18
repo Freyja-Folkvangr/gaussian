@@ -505,6 +505,14 @@ def scan():
             
         def __str__(self):
             return " {0.step}        {0.variable}          {0.value}".format(self)
+        
+    class UB3LYP:
+        def __init__(self, n = 0, E = 0):
+            self.E = E
+            self.n = n
+        def __str__(self):
+            
+            return " {0.n}            {0.E}".format(self)
 
         
     global file
@@ -523,6 +531,7 @@ def scan():
     with open(file, "r") as f:
         n = 0
         points=[]
+        ub3lyp=[int(0)]
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
         for line in f:
             n += 1
@@ -562,13 +571,32 @@ def scan():
                     print("{1} in HF (E)\nError: {2}\nTuple: {3}".format(type(err), err.args, Energy))
                     if verbose == True:
                         log.write("{1} in HF (E)\nError: {2}\nTuple: {3}".format(type(err), err.args, Energy))
+            elif "SCF Done:" in line and "E(UB3LYP)" in line:
+                x, *y = line.split("=")
+                x, *y = y[0].split(" ")
+                for item in y:
+                    if item == "": y.remove(item)
+                e=UB3LYP(ub3lyp[0] + 1, float(y[0]))
+                ub3lyp.append(e)
+                ub3lyp[0] += + 1
+                
             elif "Normal termination of Gaussian" in line:
                 if points != []:
+                    print("====================STEP POINTS====================")
                     print("Step     Var           Value")
                     for item in points:
                         print("{}".format(item))
-                if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
+
+                print("\n=====================E(UB3LYP)=====================")
+                print("Step                 E")
+                for item in ub3lyp:
+                    if isinstance(item, UB3LYP): print("{}".format(item))
+                    else: pass
+                    
+                if Energy[1] == 1: print("\nHartree-Fock= {}".format(Energy[0]))
                 if Energy[2] == 1: print("-Many HF found, see details in log file")
+
+
     print("Finished")
                 
     
