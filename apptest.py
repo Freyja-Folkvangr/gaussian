@@ -497,6 +497,16 @@ def irc():
                 print (type(inst))
                 print (inst.args)
 def scan():
+    class Point:
+        def __init__(self, step=0, variable=0, value=0.00):
+            self.step = step
+            self.variable = variable
+            self.value = value
+            
+        def __str__(self):
+            return " {0.step}        {0.variable}          {0.value}".format(self)
+
+        
     global file
     global verbose
     if verbose == True:
@@ -512,21 +522,23 @@ def scan():
     checkfile(file)
     with open(file, "r") as f:
         n = 0
+        points=[]
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
         for line in f:
             n += 1
-            if "Variable" in line and "Step" in line and "Value" in line:
+            if "Variable" in line and "Step" in line and "Value" in line and "No. Steps" not in line and "Step-Size" not in line:
                 import linecache
                 j = 2
-                while "--------------------------------------------------" not in linecache.getline(file, n + j):
+                while "--------------------------------------------------" not in linecache.getline(file, n + j) and "A total of" not in linecache.getline(file, n + j):
                     if line != " ":
                         q, *r = linecache.getline(file, n + j).split(" ")
                     k = 0
-                    for item in r:
-                        k += 1
-                        if item == '':
-                            r.remove(item)
-                    print(r)
+                    while k < len(r):
+                        if r[k] == '':
+                            r.remove(r[k])
+                        else: k += 1
+                    p=Point(int(r[1]),int(r[0]),float(r[2]))
+                    points.append(p)
                     j += 1
             elif "HF=" in line:
                 x, *y = line.split("HF=")
@@ -551,8 +563,13 @@ def scan():
                     if verbose == True:
                         log.write("{1} in HF (E)\nError: {2}\nTuple: {3}".format(type(err), err.args, Energy))
             elif "Normal termination of Gaussian" in line:
+                if points != []:
+                    print("Step     Var           Value")
+                    for item in points:
+                        print("{}".format(item))
                 if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
                 if Energy[2] == 1: print("-Many HF found, see details in log file")
+    print("Finished")
                 
     
 
