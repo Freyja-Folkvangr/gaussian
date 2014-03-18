@@ -255,6 +255,11 @@ def op():
                                 x, *y = line.split('HF=')
                                 x, *y = y[0].split('\\')
                                 try:
+                                    tmp=float(x)
+                                except (ValueError):
+                                    p, *q = x.split(",")
+                                    x = p
+                                try:
                                     if Energy[0] != None and Energy[1] != None and Energy[2] == 0:
                                         Energy = (float(x), 1, 1)
                                         if verbose == True:
@@ -272,7 +277,7 @@ def op():
                                     if verbose == True:
                                         log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
                                 
-                        elif "GradGradGradGradGradGradGrad" in line:
+                        elif "GradGradGradGradGradGradGrad" in line or "Initial guess <" in line:
                                 if verbose == True and (aocc != [] and avirt != []):
                                         report_orbitals(aocc, bocc, avirt, bvirt)
                                 if Standard_orientation != [] and verbose == True:
@@ -506,8 +511,49 @@ def scan():
         print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'") 
     checkfile(file)
     with open(file, "r") as f:
+        n = 0
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
-    print("done")
+        for line in f:
+            n += 1
+            if "Variable" in line and "Step" in line and "Value" in line:
+                import linecache
+                j = 2
+                while "--------------------------------------------------" not in linecache.getline(file, n + j):
+                    if line != " ":
+                        q, *r = linecache.getline(file, n + j).split(" ")
+                    k = 0
+                    for item in r:
+                        k += 1
+                        if item == '':
+                            r.remove(item)
+                    print(r)
+                    j += 1
+            elif "HF=" in line:
+                x, *y = line.split("HF=")
+                x, *y = y[0].split("\\")
+                try:
+                    tmp=float(x)
+                except(ValueError):
+                    p, *q = x.split(",")
+                    x = p
+                try:
+                    if Energy[0] != None and Energy[1] != None and Energy[2] == 0:
+                        Energy = (float(x), 1, 1)
+                        if verbose == True:
+                            log.write("HF= {}\n".format(Energy[0]))
+                    else:
+                        Energy = (float(x), 1, 0)
+                        if verbose == True:
+                            log.write("HF= {}\n".format(Energy[0]))
+                            
+                except(ValueError, TypeError) as err:
+                    print("{1} in HF (E)\nError: {2}\nTuple: {3}".format(type(err), err.args, Energy))
+                    if verbose == True:
+                        log.write("{1} in HF (E)\nError: {2}\nTuple: {3}".format(type(err), err.args, Energy))
+            elif "Normal termination of Gaussian" in line:
+                if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
+                if Energy[2] == 1: print("-Many HF found, see details in log file")
+                
     
 
 
