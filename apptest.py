@@ -142,7 +142,6 @@ def op():
                 checkfile(file)
                 with open(file, "r") as f:
                     Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
-                    if verbose == True:
                     aocc = []
                     bocc = []
                     avirt = []
