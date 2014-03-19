@@ -100,11 +100,6 @@ def op():
                     print("=======================RESULTS======================")
                     if verbose == True: print("Itineration {}:".format(n))
                     if verbose == True:
-                        log.write("\n==========================================================\n")
-                        log.write("We organice the data, then we log it\n")
-                        log.write("and finally we show final results from\n")
-                        log.write("itineration {} as Gauss09 sAWK output\n".format(n))
-                        log.write("==========================================================\n")
                         log.write("\nAO:\n")
                         log.write(str(aocc))
                         log.write("\n\nAV:\n")
@@ -148,11 +143,6 @@ def op():
                 with open(file, "r") as f:
                     Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
                     if verbose == True:
-                        log.write("==========================================================\n")
-                        log.write("We read, take and log data we're interested in\n")
-                        log.write("Empty items like '' will be ignored\n")
-                        log.write("If there's another itineration, this step will start over\n")
-                        log.write("==========================================================\n")
                     aocc = []
                     bocc = []
                     avirt = []
@@ -334,7 +324,15 @@ def irc():
                         self.combinations = combinations
                         self.angle = angle
                 def __str__(self):
-                        return "{0.combinations}            {0.angle}º".format(self)
+                        return "{0.combinations}            {0.angle}".format(self)
+        class UBHFLYP:
+            def __init__(self, n = 0, E = 0):
+                self.E = E
+                self.n = n
+                
+            def __str__(self):
+                return " {0.n}            {0.E}".format(self)
+        
         class Coordinates:
             def __init__(self, x=0, y=0, z=0):
                 self.x = x
@@ -396,6 +394,7 @@ def irc():
                 with open(file, "r") as f:
                     internal_angles = []
                     zMatrix = []
+                    ubhflyp=[int(0)]
                     Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
                     for line in f:
                             n = n + 1
@@ -431,6 +430,16 @@ def irc():
                                                     if z == []: pass
                                                     else: internal_angles.append(Angle(w, float(z[0])))
                                             j += 1
+                                            
+                            elif "SCF Done:" in line and "E(UB+HF-LYP)" in line:
+                                x, *y = line.split("=")
+                                #print(y)
+                                x, *y = y[0].split(" ")
+                                for item in y:
+                                    if item == "": y.remove(item)
+                                e=UBHFLYP(ubhflyp[0] +1, float(y[0]))
+                                ubhflyp.append(e)
+                                ubhflyp[0] += 1
                                     
                             elif "IRC-IRC-IRC-IRC-IRC" in line or "Initial guess <" in line:
                                     if verbose == True:
@@ -480,6 +489,19 @@ def irc():
                                     log.write("\n\n\n")
                                 if internal_angles != []: report_angles(internal_angles, Matrix_number)
                                 if zMatrix != []: report_zMatrix(zMatrix, Matrix_number)
+
+                                if verbose == True:
+                                    log.write("\n=====================E(UB+HF+LYP)=====================")
+                                    print("\n=====================E(UB+HF+LYP)=====================")
+                                    log.write("Step                 E")
+                                    for item in ubhflyp:
+                                        if isinstance(item, UBHFLYP):
+                                            log.write("{}\n".format(item))
+                                            print("{}".format(item))
+                                        else: pass
+                                else:
+                                    print("\n=====================E(UB+HF+LYP)=====================")
+                                    print("{}".format(ubhflyp[len(ubhflyp)-1]))
 
                                 if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
                                 if Energy[2] == 1: print("-Many HF found, see details in log file")
