@@ -519,16 +519,17 @@ def irc():
                 print (inst.args)
 def scan():
     class Point:
-        def __init__(self, step=0, variable=0, value=0.00):
+        def __init__(self, step=0, variable=None, value=None, energy = None):
             self.step = step
             self.variable = variable
             self.value = value
+            self.energy = energy
             
         def __str__(self):
-            return " {0.step}        {0.variable}          {0.value}".format(self)
+            return " {0.step}        {0.variable}          {0.value}          {0.energy}".format(self)
         
     class UB3LYP:
-        def __init__(self, n = 0, E = 0):
+        def __init__(self, n = 0, E = None):
             self.E = E
             self.n = n
         def __str__(self):
@@ -600,19 +601,31 @@ def scan():
                 e=UB3LYP(ub3lyp[0] + 1, float(y[0]))
                 ub3lyp.append(e)
                 ub3lyp[0] += + 1
+                    if verbose == True:
+                        log.write("There was an error with the Energy @ Scan\n")
+                        log.write(type(err))
+                        log.write(err.args)
                 
             elif "Normal termination of Gaussian" in line:
                 if points != []:
+                    if verbose == True:
+                        log.write("====================STEP POINTS====================\n")
+                        log.write("Step     Var           Value            E(UB3LYP)\n")
                     print("====================STEP POINTS====================")
-                    print("Step     Var           Value")
+                    print("Step     Var           Value            E(UB3LYP)")
                     for item in points:
+                        if verbose == True: log.write("{}\n".format(item))
                         print("{}".format(item))
-
-                print("\n=====================E(UB3LYP)=====================")
-                print("Step                 E")
-                for item in ub3lyp:
-                    if isinstance(item, UB3LYP): print("{}".format(item))
-                    else: pass
+                if verbose == True:
+                    log.write("\n=====================E(UB3LYP)=====================\n")
+                    log.write("Step                 E\n")
+                    print("\n=====================E(UB3LYP)=====================")
+                    print("Step                 E")
+                    for item in ub3lyp:
+                        if isinstance(item, UB3LYP):
+                            print("{}".format(item))
+                            log.write("{}\n".format(item))
+                        else: pass
                     
                 if Energy[1] == 1: print("\nHartree-Fock= {}".format(Energy[0]))
                 if Energy[2] == 1: print("-Many HF found, see details in log file")
