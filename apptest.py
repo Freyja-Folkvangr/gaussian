@@ -518,15 +518,23 @@ def irc():
                 print (type(inst))
                 print (inst.args)
 def scan():
-    class Point:
+    class Step:
         def __init__(self, step=0, variable=None, value=None, energy = None):
             self.step = step
             self.variable = variable
             self.value = value
+            
+        def __str__(self):
+            return " {0.step}        {0.variable}          {0.value}".format(self)
+        
+    class Point:
+        def __init__(self, step=None, coordinate=None, energy = None):
+            self.step = step
+            self.coordinate = coordinate
             self.energy = energy
             
         def __str__(self):
-            return " {0.step}        {0.variable}          {0.value}          {0.energy}".format(self)
+            return " {0.step}                {0.coordinate}              {0.energy}".format(self)
         
     class UB3LYP:
         def __init__(self, n = 0, E = None):
@@ -552,6 +560,7 @@ def scan():
     checkfile(file)
     with open(file, "r") as f:
         n = 0
+        steps=[]
         points=[]
         ub3lyp=[int(0)]
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
@@ -565,12 +574,23 @@ def scan():
                         q, *r = linecache.getline(file, n + j).split(" ")
                     k = 0
                     while k < len(r):
-                        if r[k] == '':
-                            r.remove(r[k])
+                        if r[k] == '': r.remove(r[k])
                         else: k += 1
-                    p=Point(int(r[1]),int(r[0]),float(r[2]))
-                    points.append(p)
+                    p=Step(int(r[1]),int(r[0]),float(r[2]))
+                    steps.append(p)
                     j += 1
+            elif "Summary" in line and "potential" in line and "surface" in line and "scan"in line:
+                import linecache
+                j = 3
+                while "----" not in linecache.getline(file, n + j):
+                    x, *y = linecache.getline(file, n + j).split(" ")
+                    j += 1
+                    k = 0
+                    while k < len(y):
+                        if y[k] == "": y.remove(y[k])
+                        else: k += 1
+                    p=Point(int(y[0]), float(y[1]), None)
+                    points.append(p)
             elif "HF=" in line:
                 x, *y = line.split("HF=")
                 x, *y = y[0].split("\\")
@@ -601,37 +621,44 @@ def scan():
                 e=UB3LYP(ub3lyp[0] + 1, float(y[0]))
                 ub3lyp.append(e)
                 ub3lyp[0] += + 1
-                    if verbose == True:
-                        log.write("There was an error with the Energy @ Scan\n")
-                        log.write(type(err))
-                        log.write(err.args)
                 
             elif "Normal termination of Gaussian" in line:
                 if points != []:
-                    if verbose == True:
-                        log.write("====================STEP POINTS====================\n")
-                        log.write("Step     Var           Value            E(UB3LYP)\n")
-                    print("====================STEP POINTS====================")
-                    print("Step     Var           Value            E(UB3LYP)")
+                    for item in ub3lyp:
+                        if isinstance(item, UB3LYP):
+                            points[item.n-1].energy = item.E
+                    if verbose == True: log.write("\n======================POINTS=======================\nPoint            Coordinate                Energy\n")
+                    print("\n======================POINTS=======================")
+                    print("Point            Coordinate                Energy\n")
                     for item in points:
-                        if verbose == True: log.write("{}\n".format(item))
                         print("{}".format(item))
+                        if verbose == True: log.write("{}\n".format(item))
                 if verbose == True:
                     log.write("\n=====================E(UB3LYP)=====================\n")
-                    log.write("Step                 E\n")
+                    log.write("Point              Value\n")
                     print("\n=====================E(UB3LYP)=====================")
-                    print("Step                 E")
+                    print("Point              Value")
                     for item in ub3lyp:
                         if isinstance(item, UB3LYP):
                             print("{}".format(item))
                             log.write("{}\n".format(item))
                         else: pass
-                    
+                        
+                if steps != []:
+                    if verbose == True:
+                        log.write("=======================STEPS=======================\n")
+                        log.write("Step     Var           Value\n")
+                        print("=======================STEPS=======================")
+                        print("Step     Var           Value")
+                        for item in steps:
+                            print("{}".format(item))
+                            if verbose == True: log.write("{}\n".format(item))
                 if Energy[1] == 1: print("\nHartree-Fock= {}".format(Energy[0]))
                 if Energy[2] == 1: print("-Many HF found, see details in log file")
 
 
     print("Finished")
+    if verbose == True: log.close()
                 
     
 
