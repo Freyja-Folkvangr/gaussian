@@ -303,15 +303,10 @@ def op():
                                 
                                 
                         else: pass
-                if verbose == True:
-                        log.write("\n#AO means alpha occ eigenvalues\n")
-                        log.write("\n#AV means alpha virt eigenvalues\n")
-                        log.write("\n#BO means beta occ eigenvalues\n")
-                        log.write("\n#BV means beta virt eigenvalues\n")
-                        log.close()
-                if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
-                if Energy[2] == 1: print("-Many HF found, see details in log file")
-                print("Finished")
+                    log.close()
+                    if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
+                    if Energy[2] == 1: print("-Many HF found, see details in log file")
+                    print("Finished")
         except(RuntimeError, TypeError) as inst:
                 print ("There was an error while reading the optimization values")
                 print (type(inst))
