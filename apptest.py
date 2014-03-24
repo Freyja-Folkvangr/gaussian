@@ -124,23 +124,23 @@ def op():
                         print (type(inst))
                         print (inst)
         try:
-                global n
-                n = 0
-                Line_number = 0
-                global file
-                global verbose
-                if verbose == True:
-                        global log
-                        log = open("gauss09sAWK.log", "w")
-                        from datetime import datetime
-                        log.write("=============================Gauss09 sAWK=============================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
-                        log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
-                        log.close()
-                        log = open("gauss09sAWK.log", "a")
-                        print("NOTE: Logs are turned on")
-                        print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'")    
-                checkfile(file)
-                with open(file, "r") as f:
+            global n
+            n = 0
+            Line_number = 0
+            global file
+            global verbose
+            if verbose == True:
+                global log
+                log = open("gauss09sAWK.log", "w")
+                from datetime import datetime
+                log.write("=============================Gauss09 sAWK=============================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
+                log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
+                log.close()
+                log = open("gauss09sAWK.log", "a")
+                print("NOTE: Logs are turned on")
+                print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'")    
+            checkfile(file)
+            with open(file, "r") as f:
                     Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
                     aocc = []
                     bocc = []
