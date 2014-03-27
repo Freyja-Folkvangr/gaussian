@@ -501,12 +501,7 @@ def irc():
                                 if Energy[2] == 1: print("-Many HF found, see details in log file")
 
 
-                if verbose == True:
-                        log.write("\n#AO means alpha occ eigenvalues\n")
-                        log.write("#AV means alpha virt eigenvalues\n")
-                        log.write("#BO means beta occ eigenvalues\n")
-                        log.write("#BV means beta virt eigenvalues\n")
-                        log.close()
+                if verbose == True: log.close()
                 print("Finished")
         except (RuntimeError, TypeError, ValueError, OSError) as inst:
                 print ("There was an error on IRC")
