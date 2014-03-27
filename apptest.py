@@ -272,12 +272,6 @@ def op():
                                 if Standard_orientation != [] and verbose == True:
                                         report_Standard_orientation(Standard_orientation, Matrix_number)
                                         log_Standard_orientation(Standard_orientation, Matrix_number)
-                                """
-                                if aocc != []:print("\naocc\n{}\n".format(aocc))
-                                if bocc != []:print("\nbocc\n{}\n".format(bocc))
-                                if avirt != []:print("\navirt\n{}\n".format(avirt))
-                                if bvirt != []:print("\nbvirt\n{}\n".format(bvirt))
-                                """
                                 Standard_orientation = []
                                 aocc = []
                                 bocc = []
@@ -289,12 +283,6 @@ def op():
                                         report_orbitals(aocc, bocc, avirt, bvirt)
                                 if Standard_orientation != []: report_Standard_orientation(Standard_orientation, Matrix_number)
                                 if verbose == True: log_Standard_orientation(Standard_orientation, Matrix_number)
-                                """
-                                if aocc != []:print("\naocc\n{}\n".format(aocc))
-                                if bocc != []:print("\nbocc\n{}\n".format(bocc))
-                                if avirt != []:print("\navirt\n{}\n".format(avirt))
-                                if bvirt != []:print("\nbvirt\n{}\n".format(bvirt))
-                                """
                                 Standard_orientation = []
                                 aocc = []
                                 bocc = []
