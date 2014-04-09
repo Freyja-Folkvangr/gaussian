@@ -48,7 +48,7 @@ def load_file():
         from tkinter.filedialog import askopenfilename
         from tkinter.messagebox import showerror
         try:
-                fname = askopenfilename(filetypes=(("Gaussian log/output files", "*.log"),
+                fname = askopenfilename(filetypes=(("Gaussian log/output files", "*                                                                                               "),
                                            ("All files", "*.*")))
         except (RuntimeError, IOError) as inst:
                 print ("There was an error while oppening a {1}".format(file))
@@ -656,7 +656,7 @@ def main():
                 else: scan()
         #main window
         root = Tk()
-        root.title("Gaussian09 simple AWK")
+        root.title("Gaussian09 simple AWK (BETA)")
         root.geometry("430x588")
         root.resizable(0, 0)
 
