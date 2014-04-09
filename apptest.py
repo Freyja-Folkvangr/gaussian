@@ -131,14 +131,14 @@ def op():
             global verbose
             if verbose == True:
                 global log
-                log = open("gauss09sAWK.log", "w")
+                log = open("results.txt", "w")
                 from datetime import datetime
                 log.write("=============================Gauss09 sAWK=============================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
                 log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
                 log.close()
-                log = open("gauss09sAWK.log", "a")
+                log = open("results.txt", "a")
                 print("NOTE: Logs are turned on")
-                print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'")    
+                print("NOTE 2: Saving Gauss09 sAWK logs in 'results.txt'")    
             checkfile(file)
             with open(file, "r") as f:
                     Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
@@ -364,14 +364,14 @@ def irc():
                 global verbose
                 if verbose == True:
                         global log
-                        log = open("gauss09sAWK.log", "w")
+                        log = open("results.txt", "w")
                         from datetime import datetime
                         log.write("======================Gaussian09 simple AWK======================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
                         log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
                         log.close()
-                        log = open("gauss09sAWK.log", "a")
+                        log = open("results.txt", "a")
                         print("NOTE: Logs are turned on")
-                        print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'")    
+                        print("NOTE 2: Saving Gauss09 sAWK logs in 'results.txt'")    
                 checkfile(file)
                 with open(file, "r") as f:
                     internal_angles = []
@@ -527,14 +527,14 @@ def scan():
     global verbose
     if verbose == True:
         global log
-        log = open("gauss09sAWK.log", "w")
+        log = open("results.txt", "w")
         from datetime import datetime
         log.write("======================Gaussian09 simple AWK======================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
         log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
         log.close()
-        log = open("gauss09sAWK.log", "a")
+        log = open("results.txt", "a")
         print("NOTE: Logs are turned on")
-        print("NOTE 2: Saving Gauss09 sAWK logs in 'gauss09sAWK.log'") 
+        print("NOTE 2: Saving Gauss09 sAWK logs in 'results.txt'") 
     checkfile(file)
     with open(file, "r") as f:
         n = 0
