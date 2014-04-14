@@ -48,7 +48,7 @@ def load_file():
         from tkinter.filedialog import askopenfilename
         from tkinter.messagebox import showerror
         try:
-                fname = askopenfilename(filetypes=(("Gaussian log/output files", "*                                                                                               "),
+                fname = askopenfilename(filetypes=(("Gaussian log/output files", "*.log"),
                                            ("All files", "*.*")))
         except (RuntimeError, IOError) as inst:
                 print ("There was an error while oppening a {1}".format(file))
