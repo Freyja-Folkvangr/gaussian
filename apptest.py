@@ -613,7 +613,7 @@ def main():
     
     global checkBox1_v
     checkBox1_v = IntVar()
-    checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=5, column=0, columnspan=1)
+    checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
     
     global checkBox2_v
     checkBox2_v = IntVar()
@@ -638,6 +638,10 @@ def main():
     global checkBox7_v
     checkBox7_v = IntVar()
     checkBox7 = Checkbutton(tab2, text="Points", variable=checkBox7_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=3, column=0, columnspan=1)
+    
+    global checkBox8_v
+    checkBox8_v = IntVar()
+    checkBox8 = Checkbutton(tab2, text="Dual", variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
     
 
     tab3 = Tab(root, "Info")
