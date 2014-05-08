@@ -38,16 +38,16 @@ def getline(file, line_num):
         if current_line == line_num: return line
     return ''
 
-def checkfile(afile):
+def checkfile(file):
     import os.path
-    if os.path.exists(afile):
-        x, *y = afile.split('.')
-        if y[0] != "log":
+    if os.path.exists(file):
+        x, *y = file.split('.')
+        if y[0] != "log" or y[0] != "txt":
                 load_file()
-        global file
-        file = afile
+        file = file
         return True
     else:
+        print(y[0])
         load_file()
 
 def load_file():
@@ -55,10 +55,16 @@ def load_file():
         from tkinter.filedialog import askopenfilename
         from tkinter.messagebox import showerror
         try:
+            if int(checkBox8_v.get()) == 1:
+                print("-> Open Density file (*.txt)")
+                fname = askopenfilename(filetypes=(("Density Files", "*.txt"),
+                                           ("All files", "*.*")))
+            else:
+                print("-> Open Gaussian log/output files (*.log)")
                 fname = askopenfilename(filetypes=(("Gaussian log/output files", "*.log"),
                                            ("All files", "*.*")))
         except (RuntimeError, IOError) as inst:
-                print ("There was an error while oppening a {1}".format(file))
+                print ("There was an error while oppening a {}".format(file))
                 print(type(inst))
                 print(inst)
         if fname:
@@ -415,6 +421,9 @@ def go():
                             else: k += 1
                         p=Point(int(y[0]), float(y[1]), None)
                         points.append(p)
+            if int(checkBox8_v.get()) == 1:
+                if "Direct" in line:
+                    print(line)
             if "HF=" in line:
                 x, *y = line.split('HF=')
                 x, *y = y[0].split('\\')
