@@ -38,43 +38,45 @@ def getline(file, line_num):
         if current_line == line_num: return line
     return ''
 
-def checkfile(file):
+def checkfile():
+    global file
     import os.path
     if os.path.exists(file):
         x, *y = file.split('.')
-        if y[0] != "log" or y[0] != "txt":
+        if y[len(y)-1] != "log" and y[len(y)-1] != "txt":
                 load_file()
-        file = file
-        return True
+        else:
+            return True
     else:
-        print(y[0])
         load_file()
 
 def load_file():
-        global file
-        from tkinter.filedialog import askopenfilename
-        from tkinter.messagebox import showerror
-        try:
-            if int(checkBox8_v.get()) == 1:
-                print("-> Open Density file (*.txt)")
-                fname = askopenfilename(filetypes=(("Density Files", "*.txt"),
+    import os.path
+    global file
+    from tkinter.filedialog import askopenfilename
+    from tkinter.messagebox import showerror
+    try:
+        if int(checkBox8_v.get()) == 1:
+            fname = askopenfilename(filetypes=(("Density Files", "*.txt"),
                                            ("All files", "*.*")))
+            file=fname
+            if os.path.exists(file):
+                textBox1_v.set(file)
             else:
-                print("-> Open Gaussian log/output files (*.log)")
-                fname = askopenfilename(filetypes=(("Gaussian log/output files", "*.log"),
+                checkfile()
+        else:
+            print("-> Open Gaussian log/output files (*.log)")
+            fname = askopenfilename(filetypes=(("Gaussian log/output files", "*.log"),
                                            ("All files", "*.*")))
-        except (RuntimeError, IOError) as inst:
-                print ("There was an error while oppening a {}".format(file))
-                print(type(inst))
-                print(inst)
-        if fname:
-            import os.path
-            if os.path.exists(fname):
-                        file = fname
-                        global textBox1_v
-                        textBox1_v.set(file)
+            file=fname
+            if os.path.exists(file):
+                textBox1_v.set(file)
             else:
-                return False
+                checkfile()
+    except (RuntimeError, IOError) as inst:
+            print ("There was an error while oppening a {}".format(file))
+            print(type(inst))
+            print(inst)
                     
 from tkinter import *
 
@@ -261,6 +263,7 @@ def go():
         global file
         global verbose
         global itineration
+        dual=[0,0,0]
         itineration = 0
         n = 0
         Line_number = 0
@@ -268,7 +271,7 @@ def go():
         internal_angles = []
         zMatrix = []
         ubhflyp=[int(0)]
-        checkfile(file) 
+        checkfile() 
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
         aocc = []
         bocc = []
@@ -422,8 +425,24 @@ def go():
                         p=Point(int(y[0]), float(y[1]), None)
                         points.append(p)
             if int(checkBox8_v.get()) == 1:
-                if "Direct" in line:
-                    print(line)
+                import linecache
+                if " \n" == line:
+                    j=1
+                    print(n, j)
+                    print(linecache.getline(file, n + j))
+                    j += 1
+                    if dual[0] == 0:
+                        while "\n" != linecache.getline(file, n + j):
+                            if "augmentation occupancies" in linecache.getline(file, n + j):
+                               break 
+                            x, *y = linecache.getline(file, n + j).split(" ")
+                            for item in y:
+                                if item != ' ':
+                                    dual[1] += 1
+                            print(dual[1])
+                            j += 1
+                    print(dual[0],dual[1],dual[2])
+                    return
             if "HF=" in line:
                 x, *y = line.split('HF=')
                 x, *y = y[0].split('\\')
@@ -563,12 +582,24 @@ def go():
         
 def main():
     def write(x): print (x)
-    
+    global file
     def initialize():
         textBox1.delete(1.0, END) 
         print("========================START=======================")
         global verbose
         global checkBox1_v
+        if int(checkBox8_v.get()) == 1 and (
+            int(checkBox2_v.get()) == 1 or
+            int(checkBox3_v.get()) == 1 or
+            int(checkBox4_v.get()) == 1 or
+            int(checkBox5_v.get()) == 1 or
+            int(checkBox6_v.get()) == 1 or
+            int(checkBox7_v.get()) == 1):
+            print("Error: If you want to enable Dual mode in Settings tab, you have to unselect all other options.\nJust Dual and Verbose are allowed to work together\n=======================ABORTED======================")
+            return False
+        else:
+            print("Dual mode compares two files, so that first you have to select the first file:")
+            print("-> Please select the first Density file (*.txt)")
         if int(checkBox1_v.get()) == 1:
             verbose = True
             global log
@@ -581,12 +612,19 @@ def main():
             print("NOTE: Logs are turned on")
             print("NOTE 2: Saving Gauss09 sAWK logs in 'results.txt'")
         else: verbose = False
-        checkfile(file)
+        checkfile()
         import time
-        t0 = time.time()   
-        go()
+        t0 = time.time()
+        if int(checkBox8_v.get()) == 1: 
+            go()
+            print("-> Please select the second Density file (*.txt)")
+            load_file()
+            go()
+        else:
+            go()
         print ("Lapsed time: {0:.2f}s".format(time.time() - t0))
         if verbose == True: log.close()
+        return True
         
     root = Tk()
     root.title("Gaussian 09 simple AWK (BETA 2)")
