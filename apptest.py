@@ -256,14 +256,44 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("HOMO: {}".format(bocc[len(bocc) - 1]))
         print("LUMO: {}".format(bvirt[0]))
         print("μ= {0}   Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
-
+        
+def dualm():
+    if verbose == True:
+        log.write("\n\n{}\n\n".format(file))
+    if int(checkBox8_v.get()) == 0:
+        return
+    global n
+    global dual
+    n = 0
+    count = 0
+    try:
+        with open(file, "r") as f:
+            for line in f:
+                if " \n" == line: count = 1
+                elif count == 1: count += 1
+                elif count == 2: count += 1
+                if "augmentation occupancies" not in line and count == 3:
+                    x, *y = line.split(" ")
+                    for item in y:
+                        if item != ' ' and dual[0] == 0:
+                            dual[1] += 1
+                        elif item != ' ' and dual[0] == 1:
+                            dual[2] += 1
+                elif "augmentation occupancies" in line and verbose == True:
+                    log.write("{}\n".format(dual))
+                    log.write("{}\n".format(line))
+                else:
+                    pass
+        if verbose == True:
+            log.write("\n\nTask completed with code {}\n\n".format(dual))
+    except(FileNotFoundError):
+        print("File Not Found\nAborted")
 def go():  
     def continuar():
         global n
         global file
         global verbose
         global itineration
-        dual=[0,0,0]
         itineration = 0
         n = 0
         Line_number = 0
@@ -424,25 +454,6 @@ def go():
                             else: k += 1
                         p=Point(int(y[0]), float(y[1]), None)
                         points.append(p)
-            if int(checkBox8_v.get()) == 1:
-                import linecache
-                if " \n" == line:
-                    j=1
-                    print(n, j)
-                    print(linecache.getline(file, n + j))
-                    j += 1
-                    if dual[0] == 0:
-                        while "\n" != linecache.getline(file, n + j):
-                            if "augmentation occupancies" in linecache.getline(file, n + j):
-                               break 
-                            x, *y = linecache.getline(file, n + j).split(" ")
-                            for item in y:
-                                if item != ' ':
-                                    dual[1] += 1
-                            print(dual[1])
-                            j += 1
-                    print(dual[0],dual[1],dual[2])
-                    return
             if "HF=" in line:
                 x, *y = line.split('HF=')
                 x, *y = y[0].split('\\')
@@ -598,7 +609,7 @@ def main():
             print("Error: If you want to enable Dual mode in Settings tab, you have to unselect all other options.\nJust Dual and Verbose are allowed to work together\n=======================ABORTED======================")
             return False
         else:
-            print("Dual mode compares two files, so that first you have to select the first file:")
+            print("Dual mode compares two files, so that:")
             print("-> Please select the first Density file (*.txt)")
         if int(checkBox1_v.get()) == 1:
             verbose = True
@@ -615,11 +626,20 @@ def main():
         checkfile()
         import time
         t0 = time.time()
-        if int(checkBox8_v.get()) == 1: 
-            go()
+        if int(checkBox8_v.get()) == 1:
+            global dual
+            dual = [0,0,0]
+            print("You'll be asked to open the second file when we finish reading this one.")
+            print("This may take a while....")
+            dualm()
+            dual[0] = 1
             print("-> Please select the second Density file (*.txt)")
             load_file()
-            go()
+            dualm()
+            print("First file has {}\nSecond file has {}\nFinished".format(dual[1], dual[2]))
+            if verbose == True:
+                log.write("\nFinal result: {}\n".format(dual))
+            dual[0] == 0
         else:
             go()
         print ("Lapsed time: {0:.2f}s".format(time.time() - t0))
