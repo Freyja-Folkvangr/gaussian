@@ -632,9 +632,9 @@ def main():
             print("-> Please select the second Density file (*.txt)\n")
             load_file()
             dualm(1)
-            print("1º file has {}\n2º file has {}\n\nFinished".format(dual[0], dual[1]))
+            print("1º file has | {}\n2º file has | {}\n------------|\nDifference: | {}\n\nFinished".format(dual[0], dual[1], dual[0]-dual[1]))
             if verbose == True:
-                log.write("\nFinal result: {}\n".format(dual))
+                log.write("\nFinal result: {}\nDifference: {}\n".format(dual, dual[0]-dual[1]))
             dual[0] == 0
         else:
             go()
