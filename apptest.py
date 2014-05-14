@@ -704,7 +704,7 @@ def main():
     
     global checkBox8_v
     checkBox8_v = IntVar()
-    checkBox8 = Checkbutton(tab2, text="Compare Dual data", variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
+    checkBox8 = Checkbutton(tab2, text="Dual", variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
     
 
     tab3 = Tab(root, "Info")
