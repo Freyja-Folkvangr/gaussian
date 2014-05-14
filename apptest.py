@@ -621,8 +621,8 @@ def main():
             return False
         else:
             if verbose == True: print()
-            print("   Dual mode counts the data between two files, so that:")
-            print("-> Please select the first Density file (*.txt)")
+            print("   Dual mode counts the data between two files so that:")
+            print("-> Select the first Density file (*.txt)")
         checkfile()
         import time
         t0 = time.time()
@@ -630,7 +630,7 @@ def main():
             global dual
             dual = [0,0]
             dualm(0)
-            print("-> Please select the second Density file (*.txt)\n")
+            print("-> Select the second Density file (*.txt)\n")
             temp = file
             while temp == file:
                 load_file()
