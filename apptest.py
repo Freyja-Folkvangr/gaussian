@@ -286,7 +286,7 @@ def dualm(index):
         if verbose == True:
             log.write("\n\nTask completed with code {}\n\n".format(dual))
     except(FileNotFoundError):
-        print("File Not Found\nAborted")
+        print("File Not Found\n=======================ABORTED======================")
 def go():  
     def continuar():
         global n
@@ -582,12 +582,12 @@ def go():
                         
         if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
         if Energy[2] == 1: print("-Many HF found, see details in log file")
-        print("Finished")
+        print("========================FINISHED======================")
         
     try:
         with open(file, "r") as f: continuar()
     except(FileNotFoundError):
-        print("File Not Found\nAborted")
+        print("File Not Found\n=======================ABORTED======================")
         
         
 def main():
@@ -598,18 +598,6 @@ def main():
         print("========================START=======================")
         global verbose
         global checkBox1_v
-        if int(checkBox8_v.get()) == 1 and (
-            int(checkBox2_v.get()) == 1 or
-            int(checkBox3_v.get()) == 1 or
-            int(checkBox4_v.get()) == 1 or
-            int(checkBox5_v.get()) == 1 or
-            int(checkBox6_v.get()) == 1 or
-            int(checkBox7_v.get()) == 1):
-            print("Error: If you want to enable Dual mode in Settings tab, you have to unselect all other options.\nJust Dual and Verbose are allowed to work together\n=======================ABORTED======================")
-            return False
-        else:
-            print("Dual mode compares two files, so that:")
-            print("-> Please select the first Density file (*.txt)")
         if int(checkBox1_v.get()) == 1:
             verbose = True
             global log
@@ -622,6 +610,19 @@ def main():
             print("NOTE: Logs are turned on")
             print("NOTE 2: Saving Gauss09 sAWK logs in 'results.txt'")
         else: verbose = False
+        if int(checkBox8_v.get()) == 1 and (
+            int(checkBox2_v.get()) == 1 or
+            int(checkBox3_v.get()) == 1 or
+            int(checkBox4_v.get()) == 1 or
+            int(checkBox5_v.get()) == 1 or
+            int(checkBox6_v.get()) == 1 or
+            int(checkBox7_v.get()) == 1):
+            print("\nError: If you want to enable Dual mode in Settings tab, you have to unselect all other options.\nJust Dual and Verbose are allowed to work together\n=======================ABORTED======================")
+            return False
+        else:
+            if verbose == True: print()
+            print("   Dual mode counts the data between two files, so that:")
+            print("-> Please select the first Density file (*.txt)")
         checkfile()
         import time
         t0 = time.time()
@@ -630,9 +631,11 @@ def main():
             dual = [0,0]
             dualm(0)
             print("-> Please select the second Density file (*.txt)\n")
-            load_file()
+            temp = file
+            while temp == file:
+                load_file()
             dualm(1)
-            print("1º file has | {}\n2º file has | {}\n------------|\nDifference: | {}\n\nFinished".format(dual[0], dual[1], dual[0]-dual[1]))
+            print("1º file has | {}\n2º file has | {}\n------------|\nDifference: | {}\n\n========================FINISHED======================".format(dual[0], dual[1], dual[0]-dual[1]))
             if verbose == True:
                 log.write("\nFinal result: {}\nDifference: {}\n".format(dual, dual[0]-dual[1]))
             dual[0] == 0
