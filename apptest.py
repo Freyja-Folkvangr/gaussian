@@ -279,10 +279,11 @@ def dualm(index):
                     #    log.write("{}\n".format(y))
                 elif "augmentation occupancies" in line and verbose == True:
                     #verbose_anything = True
-                    log.write("{}\n".format(dual))
+                    log.write("{} - line {}\n".format(dual,n))
                     log.write("{}\n".format(line))
                 else:
                     pass
+                n+=1
         if verbose == True:
             log.write("\n\nTask completed with code {}\n\n".format(dual))
     except(FileNotFoundError):
