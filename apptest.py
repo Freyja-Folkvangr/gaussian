@@ -255,6 +255,7 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("μ= {0}   Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
         
 def dualm(index):
+    #verbose_anything = False
     if verbose == True:
         log.write("\n\n{}\n\n".format(file))
     if int(checkBox8_v.get()) == 0:
@@ -272,9 +273,12 @@ def dualm(index):
                 if "augmentation occupancies" not in line and count == 3:
                     x, *y = line.split(" ")
                     for item in y:
-                        if item != ' ':
+                        if item != ' ' and item != '':
                             dual[index] += 1
+                    #if verbose_anything == True:
+                    #    log.write("{}\n".format(y))
                 elif "augmentation occupancies" in line and verbose == True:
+                    #verbose_anything = True
                     log.write("{}\n".format(dual))
                     log.write("{}\n".format(line))
                 else:
@@ -624,13 +628,11 @@ def main():
         if int(checkBox8_v.get()) == 1:
             global dual
             dual = [0,0]
-            print("You'll be asked to open the second file when we finish reading this one.")
-            print("This may take a while....\n")
             dualm(0)
             print("-> Please select the second Density file (*.txt)\n")
             load_file()
             dualm(1)
-            print("First file has {}\nSecond file has {}\nFinished".format(dual[1], dual[2]))
+            print("1º file has {}\n2º file has {}\n\nFinished".format(dual[0], dual[1]))
             if verbose == True:
                 log.write("\nFinal result: {}\n".format(dual))
             dual[0] == 0
