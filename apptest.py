@@ -2,13 +2,10 @@
 Created on Mar 26, 2014
 
 @author: giuliano
+
+Tabbed interface script
+www.sunjay-varma.com
 '''
-
-
-###################################################
-# Tabbed interface script
-# www.sunjay-varma.com
-###################################################
 
 __doc__ = info = '''
 http://www.github.com/evergreen2/gaussian
@@ -257,7 +254,7 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("LUMO: {}".format(bvirt[0]))
         print("μ= {0}   Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
         
-def dualm():
+def dualm(index):
     if verbose == True:
         log.write("\n\n{}\n\n".format(file))
     if int(checkBox8_v.get()) == 0:
@@ -275,10 +272,8 @@ def dualm():
                 if "augmentation occupancies" not in line and count == 3:
                     x, *y = line.split(" ")
                     for item in y:
-                        if item != ' ' and dual[0] == 0:
-                            dual[1] += 1
-                        elif item != ' ' and dual[0] == 1:
-                            dual[2] += 1
+                        if item != ' ':
+                            dual[index] += 1
                 elif "augmentation occupancies" in line and verbose == True:
                     log.write("{}\n".format(dual))
                     log.write("{}\n".format(line))
@@ -628,14 +623,13 @@ def main():
         t0 = time.time()
         if int(checkBox8_v.get()) == 1:
             global dual
-            dual = [0,0,0]
+            dual = [0,0]
             print("You'll be asked to open the second file when we finish reading this one.")
-            print("This may take a while....")
-            dualm()
-            dual[0] = 1
-            print("-> Please select the second Density file (*.txt)")
+            print("This may take a while....\n")
+            dualm(0)
+            print("-> Please select the second Density file (*.txt)\n")
             load_file()
-            dualm()
+            dualm(1)
             print("First file has {}\nSecond file has {}\nFinished".format(dual[1], dual[2]))
             if verbose == True:
                 log.write("\nFinal result: {}\n".format(dual))
