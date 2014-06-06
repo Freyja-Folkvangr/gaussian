@@ -60,7 +60,8 @@ def load_file():
             if os.path.exists(file):
                 textBox1_v.set(file)
             else:
-                checkfile()
+                print("=======================ABORTED======================")
+                return False
         else:
             print("-> Open Gaussian log/output files (*.log)")
             fname = askopenfilename(filetypes=(("Gaussian log/output files", "*.log"),
@@ -69,9 +70,11 @@ def load_file():
             if os.path.exists(file):
                 textBox1_v.set(file)
             else:
-                checkfile()
+                print("=======================ABORTED======================")
+                return False
+                
     except (RuntimeError, IOError) as inst:
-            print ("There was an error while oppening a {}".format(file))
+            print ("There was an error while oppening the file.\n {}".format(file))
             print(type(inst))
             print(inst)
                     
@@ -301,7 +304,7 @@ def go():
         internal_angles = []
         zMatrix = []
         ubhflyp=[int(0)]
-        checkfile() 
+        if checkfile() == False: return 
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
         aocc = []
         bocc = []
@@ -624,7 +627,7 @@ def main():
             if verbose == True: print()
             print("   Dual mode counts the data between two files so that:")
             print("-> Select the first Density file (*.txt)")
-        checkfile()
+        if checkfile() == False: return
         import time
         t0 = time.time()
         if int(checkBox8_v.get()) == 1:
