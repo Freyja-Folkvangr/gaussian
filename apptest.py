@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 '''
 Created on Mar 26, 2014
 
@@ -17,6 +18,9 @@ global t0
 
 global file
 file = "None"
+
+global dualStr
+dualStr = 'first'
 
 class StdoutRedirector(object):
 
@@ -53,25 +57,31 @@ def load_file():
     from tkinter.filedialog import askopenfilename
     from tkinter.messagebox import showerror
     try:
+        if 'ABORTED' in textBox2.get(1.0,END): textBox2.delete(1.0,END)
         if int(checkBox8_v.get()) == 1:
+            print("\n   Dual mode counts the data between two files so that:")
+            print("-> Select the {} Density file (*.txt)".format(dualStr))
             fname = askopenfilename(filetypes=(("Density Files", "*.txt"),
                                            ("All files", "*.*")))
             file=fname
             if os.path.exists(file):
                 textBox1_v.set(file)
             else:
-                checkfile()
+                print("=======================ABORTED======================")
+                return False
         else:
-            print("-> Open Gaussian log/output files (*.log)")
+            print("\n-> Open Gaussian log/output files (*.log)")
             fname = askopenfilename(filetypes=(("Gaussian log/output files", "*.log"),
                                            ("All files", "*.*")))
             file=fname
             if os.path.exists(file):
                 textBox1_v.set(file)
             else:
-                checkfile()
+                print("=======================ABORTED======================")
+                return False
+                
     except (RuntimeError, IOError) as inst:
-            print ("There was an error while oppening a {}".format(file))
+            print ("There was an error while oppening the file.\n {}".format(file))
             print(type(inst))
             print(inst)
                     
@@ -301,7 +311,9 @@ def go():
         internal_angles = []
         zMatrix = []
         ubhflyp=[int(0)]
-        checkfile() 
+        if checkfile() == False:
+            print("File Not Found\n=======================ABORTED======================")
+            return 
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
         aocc = []
         bocc = []
@@ -595,7 +607,7 @@ def main():
     def write(x): print (x)
     global file
     def initialize():
-        textBox1.delete(1.0, END) 
+        textBox2.delete(1.0, END) 
         print("========================START=======================")
         global verbose
         global checkBox1_v
@@ -618,20 +630,19 @@ def main():
             int(checkBox5_v.get()) == 1 or
             int(checkBox6_v.get()) == 1 or
             int(checkBox7_v.get()) == 1):
-            print("\nError: If you want to enable Dual mode in Settings tab, you have to unselect all other options.\nJust Dual and Verbose are allowed to work together\n=======================ABORTED======================")
+            print("========================ERROR=======================")
+            print("If you want to enable Dual mode in Settings tab, you have to unselect all other options.\nJust Dual and Verbose are allowed to work together\n=======================ABORTED======================")
             return False
-        else:
-            if verbose == True: print()
-            print("   Dual mode counts the data between two files so that:")
-            print("-> Select the first Density file (*.txt)")
-        checkfile()
+        if checkfile() == False:
+            print("File Not Found\n=======================ABORTED======================")
+            return
         import time
         t0 = time.time()
         if int(checkBox8_v.get()) == 1:
             global dual
             dual = [0,0]
             dualm(0)
-            print("-> Select the second Density file (*.txt)\n")
+            dualStr = 'second'
             temp = file
             while temp == file:
                 load_file()
@@ -644,6 +655,7 @@ def main():
             go()
         print ("Lapsed time: {0:.2f}s".format(time.time() - t0))
         if verbose == True: log.close()
+        dualStr = 'first'
         return True
         
     root = Tk()
@@ -664,9 +676,11 @@ def main():
     button2 = Button(tab1, text="Execute", command=lambda: initialize()).grid(pady=0, sticky=NW, column=41, row=1)
     
     #CONSOLE
-    textBox1 = Text(tab1, height=34, width=75, wrap='word', bd=1, relief=RIDGE, highlightthickness=0)
-    textBox1.grid(padx=0, pady=0, row=2, column=0, sticky=NW, columnspan=50, rowspan=50)
-    sys.stdout = StdoutRedirector(textBox1)
+    global textBox2
+    textBox2_v = StringVar()
+    textBox2 = Text(tab1, height=34, width=75, wrap='word', bd=1, relief=RIDGE, highlightthickness=0)
+    textBox2.grid(padx=0, pady=0, row=2, column=0, sticky=NW, columnspan=50, rowspan=50)
+    sys.stdout = StdoutRedirector(textBox2)
     
     #textBox2 = Text(tab1, width=63, height=1, bd=1, relief=RIDGE, highlightthickness=0)
     #textBox2.focus()
@@ -729,3 +743,5 @@ if __name__ == '__main__':
     main()
     
 sys.stdout = old_stdout
+=======
+>>>>>>> FETCH_HEAD
