@@ -70,8 +70,9 @@ def load_file():
                 return False
         else:
             print("\n-> Open Gaussian log/output files (*.log)")
-            fname = askopenfilename(filetypes=(("Gaussian log/output files", "*.log"),
-                                           ("All files", "*.*")))
+            fname = askopenfilename(filetypes=(("*.log output files", "*.log"),
+                                               ("*.txt output files", "*.txt"),
+                                               ("All files", "*.*")))
             file=fname
             if os.path.exists(file):
                 textBox1_v.set(file)
@@ -298,7 +299,7 @@ def dualm(index):
     except(FileNotFoundError):
         print("File Not Found\n=======================ABORTED======================")
 def go():  
-    def continuar():
+    def process(line):
         global n
         global file
         global verbose
@@ -322,284 +323,294 @@ def go():
         steps=[]
         points=[]
         ub3lyp=[int(0)]
-        for line in f:
-            Line_number += 1
-            n += 1
-            if int(checkBox2_v.get()) == 1:
-                #homo, lumo, orbitals, etc
-                if "Alpha  occ. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
-                    for item in args:
-                        if item != '':
-                            try: aocc.append(float(item))
-                            except (ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
-                                    a, *b = item.split(' ')
-                                    aocc.append(float(a))
-                                    aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown Error!")
-                                print (type(err))
-                                print (err)
-                elif "Alpha virt. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
-                    for item in args:
-                        if item != '':
-                            try: avirt.append(float(item))
-                            except (ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
-                                    a, *b = item.split(' ')
-                                    aocc.append(float(a))
-                                    aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown Error!")
-                                print (type(err))
-                                print (err)
-                elif "Beta  occ. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
-                    for item in args:
-                        if item != '':
-                            try: bocc.append(float(item))
-                            except(ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: there was an expected error format-related-problem with data treatment\n")
-                                    a, *b = item.split(' ')
-                                    aocc.append(float(a))
-                                    aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown error!")
-                                print (type(err))
-                                print (err)
-                elif "Beta virt. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
-                    for item in args:
-                        if item != '':
-                            try: bvirt.append(float(item))
-                            except (ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
-                                    log.write("{1}\n{2}\nDone some automatic fixes..\n".format(type(err), err))
+        Line_number += 1
+        n += 1
+        if int(checkBox2_v.get()) == 1:
+            #homo, lumo, orbitals, etc
+            if "Alpha  occ. eigenvalues" in line:
+                x, *y = line.split(' --  ')
+                args = y[0].split('  ')
+                for item in args:
+                    if item != '':
+                        try: aocc.append(float(item))
+                        except (ValueError) as err:
+                            if verbose == True:
+                                log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
                                 a, *b = item.split(' ')
                                 aocc.append(float(a))
                                 aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown Error!")
-                                print (type(err))
-                                print (err)
-            if int(checkBox3_v.get()) == 1:
-                if "Standard orientation" in line:
-                    import linecache
-                    j = 5
-                    while "-----" not in linecache.getline(file, Line_number + j):
-                        q, *r = linecache.getline(file, Line_number + j).split(' ')
-                        q = []
-                        for item in r:
-                            if item != '': q.append(item)
-                        coordinates = Coordinates(float(q[3]), float(q[4]), float(q[5]))
-                        electron = Electron(int(q[0]), int(q[1]), int(q[2]), coordinates)
-                        Standard_orientation.append(electron)
-                        j = j + 1
-            if int(checkBox4_v.get()) == 1:
-                if "Z-Matrix orientation" in line:
-                    import linecache
-                    j = 6
-                    while "-----" not in linecache.getline(file, n + j):
-                        q, *r = linecache.getline(file, n + j).split(' ')
-                        q = []
-                        for item in r:
-                            if item != '':
-                                q.append(item)
-                        coordinates = Coordinates(float(q[3]), float(q[4]), float(q[5]))
-                        electron = Electron(int(q[0]), int(q[1]), int(q[2]), coordinates)
-                        zMatrix.append(electron)
-                        j = j + 1
-            if int(checkBox5_v.get()) == 1:
-                if "Interatomic angles" in line:
-                    import linecache
-                    j = n + 1
-                    while "     " in linecache.getline(file, j):
-                        x, *y = linecache.getline(file, j).split('  ')
-                        for item in y:
-                            if item != '':
-                                w, *z = item.split('=')
-                                if ' ' in w:
-                                    a, *b = w.split(' ')
-                                    w=b[0]
-                                if (z != [] and z != '' and z != '\n') and ' ' in z[0]:
-                                    a, *b = z[0].split(' ')
-                                    if a != '' and a != '\n': z[0] = a
-                                    else: z[0] = b[0]
-                                if z == []: pass
-                                else: internal_angles.append(Angle(w, float(z[0])))
-                        j += 1
-            if int(checkBox6_v.get()) == 1:
-                if "Variable" in line and "Step" in line and "Value" in line and "No. Steps" not in line and "Step-Size" not in line:
-                    import linecache
-                    j = 2
-                    while "--------------------------------------------------" not in linecache.getline(file, n + j) and "A total of" not in linecache.getline(file, n + j):
-                        if line != " ":
-                            q, *r = linecache.getline(file, n + j).split(" ")
-                        k = 0
-                        while k < len(r):
-                            if r[k] == '': r.remove(r[k])
-                            else: k += 1
-                        p=Step(int(r[1]),int(r[0]),float(r[2]))
-                        steps.append(p)
-                        j += 1
-            if int(checkBox7_v.get()) == 1:
-                if "Summary" in line and "potential" in line and "surface" in line and "scan"in line:
-                    import linecache
-                    j = 3
-                    while "----" not in linecache.getline(file, n + j):
-                        x, *y = linecache.getline(file, n + j).split(" ")
-                        j += 1
-                        k = 0
-                        while k < len(y):
-                            if y[k] == "": y.remove(y[k])
-                            else: k += 1
-                        p=Point(int(y[0]), float(y[1]), None)
-                        points.append(p)
-            if "HF=" in line:
-                x, *y = line.split('HF=')
-                x, *y = y[0].split('\\')
-                try:
-                    tmp=float(x)
-                except (ValueError):
-                    p, *q = x.split(",")
-                    x = p
-                try:
-                    if Energy[0] != None and Energy[1] != None and Energy[2] == 0:
-                        Energy = (float(x), 1, 1)
-                        if verbose == True:
-                            log.write("HF: {}\n".format(Energy[0]))
-                    else:
-                        Energy = (float(x), 1, 0)
-                        if verbose == True:
-                            log.write("HF: {}\n".format(Energy[0]))
-                except (ValueError) as err:
-                    print("{} in HF (E)".format(type(err)))
+                        except:
+                            print ("Unknown Error!")
+                            print (type(err))
+                            print (err)
+            elif "Alpha virt. eigenvalues" in line:
+                x, *y = line.split(' --  ')
+                args = y[0].split('  ')
+                for item in args:
+                    if item != '':
+                        try: avirt.append(float(item))
+                        except (ValueError) as err:
+                            if verbose == True:
+                                log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
+                                a, *b = item.split(' ')
+                                aocc.append(float(a))
+                                aocc.append(float(b[0]))
+                        except:
+                            print ("Unknown Error!")
+                            print (type(err))
+                            print (err)
+            elif "Beta  occ. eigenvalues" in line:
+                x, *y = line.split(' --  ')
+                args = y[0].split('  ')
+                for item in args:
+                    if item != '':
+                        try: bocc.append(float(item))
+                        except(ValueError) as err:
+                            if verbose == True:
+                                log.write("\nWarning: there was an expected error format-related-problem with data treatment\n")
+                                a, *b = item.split(' ')
+                                aocc.append(float(a))
+                                aocc.append(float(b[0]))
+                        except:
+                            print ("Unknown error!")
+                            print (type(err))
+                            print (err)
+            elif "Beta virt. eigenvalues" in line:
+                x, *y = line.split(' --  ')
+                args = y[0].split('  ')
+                for item in args:
+                    if item != '':
+                        try: bvirt.append(float(item))
+                        except (ValueError) as err:
+                            if verbose == True:
+                                log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
+                                log.write("{1}\n{2}\nDone some automatic fixes..\n".format(type(err), err))
+                            a, *b = item.split(' ')
+                            aocc.append(float(a))
+                            aocc.append(float(b[0]))
+                        except:
+                            print ("Unknown Error!")
+                            print (type(err))
+                            print (err)
+        if int(checkBox3_v.get()) == 1:
+            if "Standard orientation" in line:
+                import linecache
+                j = 5
+                while "-----" not in linecache.getline(file, Line_number + j):
+                    q, *r = linecache.getline(file, Line_number + j).split(' ')
+                    q = []
+                    for item in r:
+                        if item != '': q.append(item)
+                    coordinates = Coordinates(float(q[3]), float(q[4]), float(q[5]))
+                    electron = Electron(int(q[0]), int(q[1]), int(q[2]), coordinates)
+                    Standard_orientation.append(electron)
+                    j = j + 1
+        if int(checkBox4_v.get()) == 1:
+            if "Z-Matrix orientation" in line:
+                import linecache
+                j = 6
+                while "-----" not in linecache.getline(file, n + j):
+                    q, *r = linecache.getline(file, n + j).split(' ')
+                    q = []
+                    for item in r:
+                        if item != '':
+                            q.append(item)
+                    coordinates = Coordinates(float(q[3]), float(q[4]), float(q[5]))
+                    electron = Electron(int(q[0]), int(q[1]), int(q[2]), coordinates)
+                    zMatrix.append(electron)
+                    j = j + 1
+        if int(checkBox5_v.get()) == 1:
+            if "Interatomic angles" in line:
+                import linecache
+                j = n + 1
+                while "     " in linecache.getline(file, j):
+                    x, *y = linecache.getline(file, j).split('  ')
+                    for item in y:
+                        if item != '':
+                            w, *z = item.split('=')
+                            if ' ' in w:
+                                a, *b = w.split(' ')
+                                w=b[0]
+                            if (z != [] and z != '' and z != '\n') and ' ' in z[0]:
+                                a, *b = z[0].split(' ')
+                                if a != '' and a != '\n': z[0] = a
+                                else: z[0] = b[0]
+                            if z == []: pass
+                            else: internal_angles.append(Angle(w, float(z[0])))
+                    j += 1
+        if int(checkBox6_v.get()) == 1:
+            if "Variable" in line and "Step" in line and "Value" in line and "No. Steps" not in line and "Step-Size" not in line:
+                import linecache
+                j = 2
+                while "--------------------------------------------------" not in linecache.getline(file, n + j) and "A total of" not in linecache.getline(file, n + j):
+                    if line != " ":
+                        q, *r = linecache.getline(file, n + j).split(" ")
+                    k = 0
+                    while k < len(r):
+                        if r[k] == '': r.remove(r[k])
+                        else: k += 1
+                    p=Step(int(r[1]),int(r[0]),float(r[2]))
+                    steps.append(p)
+                    j += 1
+        if int(checkBox7_v.get()) == 1:
+            if "Summary" in line and "potential" in line and "surface" in line and "scan"in line:
+                import linecache
+                j = 3
+                while "----" not in linecache.getline(file, n + j):
+                    x, *y = linecache.getline(file, n + j).split(" ")
+                    j += 1
+                    k = 0
+                    while k < len(y):
+                        if y[k] == "": y.remove(y[k])
+                        else: k += 1
+                    p=Point(int(y[0]), float(y[1]), None)
+                    points.append(p)
+        if "HF=" in line:
+            x, *y = line.split('HF=')
+            x, *y = y[0].split('\\')
+            try:
+                tmp=float(x)
+            except (ValueError):
+                p, *q = x.split(",")
+                x = p
+            try:
+                if Energy[0] != None and Energy[1] != None and Energy[2] == 0:
+                    Energy = (float(x), 1, 1)
                     if verbose == True:
-                        log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
-                except (TypeError) as err:
-                    print("{} in HF (E)".format(type(err)))
+                        log.write("HF: {}\n".format(Energy[0]))
+                else:
+                    Energy = (float(x), 1, 0)
                     if verbose == True:
-                        log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
-                        
-            elif ("GradGradGradGradGradGradGrad" in line or "Initial guess <" in line) and (int(checkBox2_v.get()) == 1 or int(checkBox3_v.get()) == 1):
-                if verbose == True and (aocc != [] and avirt != []):
-                    report_orbitals(aocc, bocc, avirt, bvirt)
-                if Standard_orientation != [] and verbose == True:
-                    report_Standard_orientation(Standard_orientation, Matrix_number)
-                Standard_orientation = []
-                aocc = []
-                bocc = []
-                avirt = []
-                bvirt = []
-            elif ("IRC-IRC-IRC-IRC-IRC" in line or "Initial guess <" in line) and ((int(checkBox4_v.get()) == 1) or (int(checkBox5_v.get()) == 1)):
-                if internal_angles != [] or zMatrix != []: Matrix_number += 1
+                        log.write("HF: {}\n".format(Energy[0]))
+            except (ValueError) as err:
+                print("{} in HF (E)".format(type(err)))
                 if verbose == True:
-                    if internal_angles != []: report_angles(internal_angles, Matrix_number)
-                    if zMatrix != []: report_zMatrix(zMatrix, Matrix_number)
-                    print()
-                zMatrix = []
-                internal_angles = []
-            elif "SCF Done:" in line and ("E(UB+HF-LYP)" in line or "E(UB3LYP)" in line):
-                if "E(UB+HF-LYP)" in line:
-                    x, *y = line.split("=")
-                    #print(y)
-                    x, *y = y[0].split(" ")
-                    for item in y:
-                        if item == "": y.remove(item)
-                    e=UBHFLYP(ubhflyp[0] +1, float(y[0]))
-                    ubhflyp.append(e)
-                    ubhflyp[0] += 1
-                elif "E(UB3LYP)" in line:
-                    x, *y = line.split("=")
-                    x, *y = y[0].split(" ")
-                    for item in y:
-                        if item == "": y.remove(item)
-                    e=UB3LYP(ub3lyp[0] + 1, float(y[0]))
-                    ub3lyp.append(e)
-                    ub3lyp[0] += + 1
-                else: pass
-            elif "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
-                                                                int(checkBox3_v.get()) == 1 or
-                                                                int(checkBox4_v.get()) == 1 or
-                                                               int(checkBox6_v.get()) == 1 or
-                                                               int(checkBox7_v.get()) == 1):
-                if int(checkBox6_v.get()) == 1:
-                    if steps != []:
-                        if verbose == True:
-                            log.write("=======================STEPS=======================\n")
-                            log.write("Step     Var           Value\n")
-                            print("=======================STEPS=======================")
-                            print("Step     Var           Value")
-                            for item in steps:
-                                print("{}".format(item))
-                                if verbose == True: log.write("{}\n".format(item))
-                if int(checkBox7_v.get()) == 1:
-                    if points != []:
-                        for item in ub3lyp:
-                            if isinstance(item, UB3LYP):
-                                points[item.n-1].energy = item.E
-                        if verbose == True: log.write("\n======================POINTS=======================\nPoint            Coordinate                Energy\n")
-                        print("\n======================POINTS=======================")
-                        print("Point            Coordinate                Energy\n")
-                        for item in points:
+                    log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
+            except (TypeError) as err:
+                print("{} in HF (E)".format(type(err)))
+                if verbose == True:
+                    log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
+                        
+        elif ("GradGradGradGradGradGradGrad" in line or "Initial guess <" in line) and (int(checkBox2_v.get()) == 1 or int(checkBox3_v.get()) == 1):
+            if verbose == True and (aocc != [] and avirt != []):
+                report_orbitals(aocc, bocc, avirt, bvirt)
+            if Standard_orientation != [] and verbose == True:
+                report_Standard_orientation(Standard_orientation, Matrix_number)
+            Standard_orientation = []
+            aocc = []
+            bocc = []
+            avirt = []
+            bvirt = []
+        elif ("IRC-IRC-IRC-IRC-IRC" in line or "Initial guess <" in line) and ((int(checkBox4_v.get()) == 1) or (int(checkBox5_v.get()) == 1)):
+            if internal_angles != [] or zMatrix != []: Matrix_number += 1
+            if verbose == True:
+                if internal_angles != []: report_angles(internal_angles, Matrix_number)
+                if zMatrix != []: report_zMatrix(zMatrix, Matrix_number)
+                print()
+            zMatrix = []
+            internal_angles = []
+        elif "SCF Done:" in line and ("E(UB+HF-LYP)" in line or "E(UB3LYP)" in line):
+            if "E(UB+HF-LYP)" in line:
+                x, *y = line.split("=")
+                #print(y)
+                x, *y = y[0].split(" ")
+                for item in y:
+                    if item == "": y.remove(item)
+                e=UBHFLYP(ubhflyp[0] +1, float(y[0]))
+                ubhflyp.append(e)
+                ubhflyp[0] += 1
+            elif "E(UB3LYP)" in line:
+                x, *y = line.split("=")
+                x, *y = y[0].split(" ")
+                for item in y:
+                    if item == "": y.remove(item)
+                e=UB3LYP(ub3lyp[0] + 1, float(y[0]))
+                ub3lyp.append(e)
+                ub3lyp[0] += + 1
+            else: pass
+        elif "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
+                                                            int(checkBox3_v.get()) == 1 or
+                                                            int(checkBox4_v.get()) == 1 or
+                                                           int(checkBox6_v.get()) == 1 or
+                                                           int(checkBox7_v.get()) == 1):
+            if int(checkBox6_v.get()) == 1:
+                if steps != []:
+                    if verbose == True:
+                        log.write("=======================STEPS=======================\n")
+                        log.write("Step     Var           Value\n")
+                        print("=======================STEPS=======================")
+                        print("Step     Var           Value")
+                        for item in steps:
                             print("{}".format(item))
                             if verbose == True: log.write("{}\n".format(item))
-                if (int(checkBox6_v.get()) == 1 or int(checkBox7_v.get()) == 1) and verbose == True:
-                    log.write("\n=====================E(UB3LYP)=====================\n")
-                    log.write("Point              Value\n")
-                    print("\n=====================E(UB3LYP)=====================")
-                    print("Point              Value")
+            if int(checkBox7_v.get()) == 1:
+                if points != []:
                     for item in ub3lyp:
                         if isinstance(item, UB3LYP):
-                            print("{}".format(item))
+                            points[item.n-1].energy = item.E
+                    if verbose == True: log.write("\n======================POINTS=======================\nPoint            Coordinate                Energy\n")
+                    print("\n======================POINTS=======================")
+                    print("Point            Coordinate                Energy\n")
+                    for item in points:
+                        print("{}".format(item))
+                        if verbose == True: log.write("{}\n".format(item))
+            if (int(checkBox6_v.get()) == 1 or int(checkBox7_v.get()) == 1) and verbose == True:
+                log.write("\n=====================E(UB3LYP)=====================\n")
+                log.write("Point              Value\n")
+                print("\n=====================E(UB3LYP)=====================")
+                print("Point              Value")
+                for item in ub3lyp:
+                    if isinstance(item, UB3LYP):
+                        print("{}".format(item))
+                        log.write("{}\n".format(item))
+                    else: pass
+            if aocc != [] and avirt != []:
+                report_orbitals(aocc, bocc, avirt, bvirt)
+            if Standard_orientation != []:
+                report_Standard_orientation(Standard_orientation, Matrix_number)
+            Standard_orientation = []
+            aocc = []
+            bocc = []
+            avirt = []
+            bvirt = []
+            if int(checkBox4_v.get()) == 1 or int(checkBox5_v.get()) == 1:
+                if internal_angles != [] or zMatrix != []: Matrix_number += 1
+                if internal_angles != []: report_angles(internal_angles, Matrix_number)
+                if zMatrix != []: report_zMatrix(zMatrix, Matrix_number)
+                if verbose == True:
+                    log.write("\n=====================E(UB+HF+LYP)=====================")
+                    print("\n=====================E(UB+HF+LYP)=====================")
+                    print("Step                 E")
+                    log.write("Step                 E")
+                    for item in ubhflyp:
+                        if isinstance(item, UBHFLYP):
                             log.write("{}\n".format(item))
+                            print("{}".format(item))
                         else: pass
-                if aocc != [] and avirt != []:
-                    report_orbitals(aocc, bocc, avirt, bvirt)
-                if Standard_orientation != []:
-                    report_Standard_orientation(Standard_orientation, Matrix_number)
-                Standard_orientation = []
-                aocc = []
-                bocc = []
-                avirt = []
-                bvirt = []
-                if int(checkBox4_v.get()) == 1 or int(checkBox5_v.get()) == 1:
-                    if internal_angles != [] or zMatrix != []: Matrix_number += 1
-                    if internal_angles != []: report_angles(internal_angles, Matrix_number)
-                    if zMatrix != []: report_zMatrix(zMatrix, Matrix_number)
-                    if verbose == True:
-                        log.write("\n=====================E(UB+HF+LYP)=====================")
-                        print("\n=====================E(UB+HF+LYP)=====================")
-                        print("Step                 E")
-                        log.write("Step                 E")
-                        for item in ubhflyp:
-                            if isinstance(item, UBHFLYP):
-                                log.write("{}\n".format(item))
-                                print("{}".format(item))
-                            else: pass
-                    else:
-                        print("\n=====================E(UB+HF+LYP)=====================")
-                        print("Step                 E")
-                        print("{}".format(ubhflyp[len(ubhflyp)-1]))
-                        
+                else:
+                    print("\n=====================E(UB+HF+LYP)=====================")
+                    print("Step                 E")
+                    print("{}".format(ubhflyp[len(ubhflyp)-1]))
+                    
         if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
         if Energy[2] == 1: print("-Many HF found, see details in log file")
         print("========================FINISHED======================")
         
     try:
-        with open(file, "r") as f: continuar()
+        with open(file, "r") as f:
+            for line in f:
+                process(line)
     except(FileNotFoundError):
         print("File Not Found\n=======================ABORTED======================")
+    except(UnicodeDecodeError) as err:
+        print("=======================ERROR======================")
+        print(type(err))
+        print(err)
+        if verbose == True:
+            log.write("{}\n\n".format(type(err)))
+            log.write("{}\n\n".format(err))
+            log.write("{}\n\n".format(err.args))
+            print("Error details saved into the log file.")
         
         
 def main():
