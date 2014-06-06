@@ -742,5 +742,3 @@ if __name__ == '__main__':
     main()
     
 sys.stdout = old_stdout
-=======
->>>>>>> FETCH_HEAD
