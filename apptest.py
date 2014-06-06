@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 '''
 Created on Mar 26, 2014
 
@@ -742,3 +743,5 @@ if __name__ == '__main__':
     main()
     
 sys.stdout = old_stdout
+=======
+>>>>>>> FETCH_HEAD
