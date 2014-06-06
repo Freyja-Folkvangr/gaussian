@@ -1,4 +1,4 @@
 =============================Gauss09 sAWK=============================
 #code's author: Giuliano Tognarelli Buono-core
-#
-#Last run on Friday 06/06/2014 at 13:10 (dd/mm/yyyy)
+#None
+#Last run on Friday 06/06/2014 at 13:23 (dd/mm/yyyy)
