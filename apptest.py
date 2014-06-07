@@ -70,8 +70,9 @@ def load_file():
                 return False
         else:
             print("\n-> Open Gaussian log/output files (*.log)")
-            fname = askopenfilename(filetypes=(("Gaussian log/output files", "*.log"),
-                                           ("All files", "*.*")))
+            fname = askopenfilename(filetypes=(("*.log output files", "*.log"),
+                                               ("*.txt output files", "*.txt"),
+                                               ("All files", "*.*")))
             file=fname
             if os.path.exists(file):
                 textBox1_v.set(file)
@@ -242,7 +243,7 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         log.write("\n\nBO:\n")
         log.write("\n\nBV:\n")
         log.write(str(bvirt))
-        if bocc != []: log.write("Alpha results\n")
+        if bocc != []: log.write("\nAlpha results\n")
         log.write("HOMO: {}\n".format(aocc[len(aocc) - 1]))
         log.write("LUMO: {}\n".format(avirt[0]))
         log.write("u= {0}   Hn= {1}\n".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
@@ -298,7 +299,7 @@ def dualm(index):
     except(FileNotFoundError):
         print("File Not Found\n=======================ABORTED======================")
 def go():  
-    def continuar():
+    def process():
         global n
         global file
         global verbose
@@ -490,7 +491,7 @@ def go():
                     print("{} in HF (E)".format(type(err)))
                     if verbose == True:
                         log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
-                        
+                            
             elif ("GradGradGradGradGradGradGrad" in line or "Initial guess <" in line) and (int(checkBox2_v.get()) == 1 or int(checkBox3_v.get()) == 1):
                 if verbose == True and (aocc != [] and avirt != []):
                     report_orbitals(aocc, bocc, avirt, bvirt)
@@ -512,7 +513,6 @@ def go():
             elif "SCF Done:" in line and ("E(UB+HF-LYP)" in line or "E(UB3LYP)" in line):
                 if "E(UB+HF-LYP)" in line:
                     x, *y = line.split("=")
-                    #print(y)
                     x, *y = y[0].split(" ")
                     for item in y:
                         if item == "": y.remove(item)
@@ -592,14 +592,24 @@ def go():
                         print("Step                 E")
                         print("{}".format(ubhflyp[len(ubhflyp)-1]))
                         
-        if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
-        if Energy[2] == 1: print("-Many HF found, see details in log file")
-        print("========================FINISHED======================")
+            if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
+            if Energy[2] == 1: print("-Many HF found, see details in log file")
         
     try:
-        with open(file, "r") as f: continuar()
+        with open(file, "r", encoding="latin-1") as f:
+            process()
     except(FileNotFoundError):
         print("File Not Found\n=======================ABORTED======================")
+    except(UnicodeDecodeError) as err:
+        print("========================ERROR=======================")
+        print(type(err))
+        print(err)
+        if verbose == True:
+            log.write("{}\n\n".format(type(err)))
+            log.write("{}\n\n".format(err))
+            log.write("{}\n\n".format(err.args))
+            print("Error details saved into the log file.")
+        print("=======================ABORTED======================")
         
         
 def main():
