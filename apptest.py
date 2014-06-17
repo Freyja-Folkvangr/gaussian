@@ -69,7 +69,7 @@ def load_file():
                 print("=======================ABORTED======================")
                 return False
         else:
-            print("\n-> Open Gaussian log/output files (*.log)")
+            print("\n-> Open Gaussian log/output files (*.log or *.txt)")
             fname = askopenfilename(filetypes=(("*.log output files", "*.log"),
                                                ("*.txt output files", "*.txt"),
                                                ("All files", "*.*")))
@@ -241,28 +241,29 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         log.write("\n\nAV:\n")
         log.write(str(avirt))
         log.write("\n\nBO:\n")
+        log.write(str(bocc))
         log.write("\n\nBV:\n")
         log.write(str(bvirt))
-        if bocc != []: log.write("\nAlpha results\n")
-        log.write("HOMO: {}\n".format(aocc[len(aocc) - 1]))
-        log.write("LUMO: {}\n".format(avirt[0]))
-        log.write("u= {0}   Hn= {1}\n".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
+        if bocc != []: log.write("\n\n    |Alpha results\n____|________________\n")
+        log.write("HOMO|  {}\n".format(aocc[len(aocc) - 1]))
+        log.write("LUMO|  {}\n____|________________\n".format(avirt[0]))
+        log.write("u= {0} &  Hn= {1}\n".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
         if bocc != []:
-            log.write("Beta results\n")
-            log.write("HOMO: {}\n".format(bocc[len(bocc) - 1]))
-            log.write("LUMO: {}\n".format(bvirt[0]))
-            log.write("u= {0}   Hn= {1}\n".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
+            log.write("\n    |Beta results\n____|________________\n")
+            log.write("HOMO|  {}\n".format(bocc[len(bocc) - 1]))
+            log.write("LUMO|  {}\n____|________________\n".format(bvirt[0]))
+            log.write("u= {0}  &  Hn= {1}\n".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
         log.write("\n=============================EOI=============================\n")
-    if bocc != []: print ("Alpha results")
-    print("HOMO: {}".format(aocc[len(aocc) - 1]))
-    print("LUMO: {}".format(avirt[0]))
-    print("μ= {0}   Ηη= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
+    if bocc != []: print ("    |Alpha results\n____|________________")
+    print("HOMO|  {}".format(aocc[len(aocc) - 1]))
+    print("LUMO|  {}\n____|________________".format(avirt[0]))
+    print("μ= {0}  &  Ηη= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
     print()
     if bocc != []:
-        print ("Beta results")
-        print("HOMO: {}".format(bocc[len(bocc) - 1]))
-        print("LUMO: {}".format(bvirt[0]))
-        print("μ= {0}   Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
+        print ("    |Beta results\n____|________________")
+        print("HOMO|  {}".format(bocc[len(bocc) - 1]))
+        print("LUMO|  {}\n____|________________".format(bvirt[0]))
+        print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
         
 def dualm(index):
     #verbose_anything = False
@@ -336,7 +337,7 @@ def go():
                             try: aocc.append(float(item))
                             except (ValueError) as err:
                                 if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
+                                    log.write("\nWarning: There was an expected format-related-problem with data treatment:\n{}\n".format(item))
                                     a, *b = item.split(' ')
                                     aocc.append(float(a))
                                     aocc.append(float(b[0]))
@@ -352,7 +353,7 @@ def go():
                             try: avirt.append(float(item))
                             except (ValueError) as err:
                                 if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
+                                    log.write("\nWarning: There was an expected format-related-problem with data treatment: {}\n".format(item))
                                     a, *b = item.split(' ')
                                     aocc.append(float(a))
                                     aocc.append(float(b[0]))
@@ -368,7 +369,7 @@ def go():
                             try: bocc.append(float(item))
                             except(ValueError) as err:
                                 if verbose == True:
-                                    log.write("\nWarning: there was an expected error format-related-problem with data treatment\n")
+                                    log.write("\nWarning: there was an expected error format-related-problem with data treatment:\n{}\n".format(item))
                                     a, *b = item.split(' ')
                                     aocc.append(float(a))
                                     aocc.append(float(b[0]))
@@ -384,7 +385,7 @@ def go():
                             try: bvirt.append(float(item))
                             except (ValueError) as err:
                                 if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment\n")
+                                    log.write("\nWarning: There was an expected format-related-problem with data treatment:\n{}\n".format(item))
                                     log.write("{1}\n{2}\nDone some automatic fixes..\n".format(type(err), err))
                                 a, *b = item.split(' ')
                                 aocc.append(float(a))
@@ -494,6 +495,12 @@ def go():
                             
             elif ("GradGradGradGradGradGradGrad" in line or "Initial guess <" in line) and (int(checkBox2_v.get()) == 1 or int(checkBox3_v.get()) == 1):
                 if verbose == True and (aocc != [] and avirt != []):
+                    bocc.sort()
+                    bvirt.sort()
+                    aocc.sort()
+                    avirt.sort()
+                    bocc.reverse()
+                    bvirt.reverse()
                     report_orbitals(aocc, bocc, avirt, bvirt)
                 if Standard_orientation != [] and verbose == True:
                     report_Standard_orientation(Standard_orientation, Matrix_number)
@@ -544,7 +551,7 @@ def go():
                                 print("{}".format(item))
                                 if verbose == True: log.write("{}\n".format(item))
                 if int(checkBox7_v.get()) == 1:
-                    if points != []:
+                    if points != [] and ub3lyp != [0]:
                         for item in ub3lyp:
                             if isinstance(item, UB3LYP):
                                 points[item.n-1].energy = item.E
@@ -554,7 +561,7 @@ def go():
                         for item in points:
                             print("{}".format(item))
                             if verbose == True: log.write("{}\n".format(item))
-                if (int(checkBox6_v.get()) == 1 or int(checkBox7_v.get()) == 1) and verbose == True:
+                if (int(checkBox6_v.get()) == 1 or int(checkBox7_v.get()) == 1) and verbose == True and ub3lyp != [0]:
                     log.write("\n=====================E(UB3LYP)=====================\n")
                     log.write("Point              Value\n")
                     print("\n=====================E(UB3LYP)=====================")
@@ -565,6 +572,12 @@ def go():
                             log.write("{}\n".format(item))
                         else: pass
                 if aocc != [] and avirt != []:
+                    bocc.sort()
+                    bvirt.sort()
+                    aocc.sort()
+                    avirt.sort()
+                    bocc.reverse()
+                    bvirt.reverse()
                     report_orbitals(aocc, bocc, avirt, bvirt)
                 if Standard_orientation != []:
                     report_Standard_orientation(Standard_orientation, Matrix_number)
@@ -577,7 +590,7 @@ def go():
                     if internal_angles != [] or zMatrix != []: Matrix_number += 1
                     if internal_angles != []: report_angles(internal_angles, Matrix_number)
                     if zMatrix != []: report_zMatrix(zMatrix, Matrix_number)
-                    if verbose == True:
+                    if verbose == True and ubhflyp != [0]:
                         log.write("\n=====================E(UB+HF+LYP)=====================")
                         print("\n=====================E(UB+HF+LYP)=====================")
                         print("Step                 E")
@@ -587,10 +600,12 @@ def go():
                                 log.write("{}\n".format(item))
                                 print("{}".format(item))
                             else: pass
-                    else:
+                    elif verbose == False and ubhflyp != [0]:
                         print("\n=====================E(UB+HF+LYP)=====================")
                         print("Step                 E")
                         print("{}".format(ubhflyp[len(ubhflyp)-1]))
+                    else:
+                        pass
                         
             if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
             if Energy[2] == 1: print("-Many HF found, see details in log file")
@@ -662,6 +677,7 @@ def main():
             dual[0] == 0
         else:
             go()
+            print("========================FINISHED======================")
         print ("Lapsed time: {0:.2f}s".format(time.time() - t0))
         if verbose == True: log.close()
         dualStr = 'first'
