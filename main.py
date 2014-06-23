@@ -10,11 +10,14 @@ www.sunjay-varma.com
 __doc__ = info = '''
 http://www.github.com/evergreen2/gaussian
 '''
+
 import sys
+from classes import *
+from tab_constructor import *
+from tkinter import *
 old_stdout = sys.stdout
 
 global t0
-
 global file
 file = "None"
 
@@ -38,8 +41,7 @@ def getline(file, line_num):
         if current_line == line_num: return line
     return ''
 
-def checkfile():
-    global file
+def checkfile(file):
     import os.path
     if os.path.exists(file):
         x, *y = file.split('.')
@@ -56,6 +58,7 @@ def load_file():
     from tkinter.filedialog import askopenfilename
     from tkinter.messagebox import showerror
     try:
+        global textBox2
         if 'ABORTED' in textBox2.get(1.0,END): textBox2.delete(1.0,END)
         if int(checkBox8_v.get()) == 1:
             print("\n   Dual mode counts the data between two files so that:")
@@ -83,118 +86,8 @@ def load_file():
     except (RuntimeError, IOError) as inst:
             print ("There was an error while oppening the file.\n {}".format(file))
             print(type(inst))
-            print(inst)
-                    
-from tkinter import *
+            print(inst) 
 
-BASE = RAISED
-SELECTED = FLAT
-
-# a base tab class
-class Tab(Frame):
-    def __init__(self, master, name):
-        Frame.__init__(self, master)
-        self.tab_name = name
-
-# the bulk of the logic is in the actual tab bar
-class TabBar(Frame):
-    def __init__(self, master=None, init_name=None):
-        Frame.__init__(self, master)
-        self.tabs = {}
-        self.buttons = {}
-        self.current_tab = None
-        self.init_name = init_name
-    
-    def show(self):
-        self.pack(side=TOP, expand=YES, fill=X)
-        self.switch_tab(self.init_name or self.tabs.keys()[-1])# switch the tab to the first tab
-    
-    def add(self, tab):
-        tab.pack_forget()                                    # hide the tab on init
-        
-        self.tabs[tab.tab_name] = tab                        # add it to the list of tabs
-        b = Button(self, text=tab.tab_name, relief=BASE,    # basic button stuff
-            command=(lambda name=tab.tab_name: self.switch_tab(name)))    # set the command to switch tabs
-        b.pack(side=LEFT)                                                # pack the buttont to the left mose of self
-        self.buttons[tab.tab_name] = b                                            # add it to the list of buttons
-    
-    def delete(self, tabname):
-        
-        if tabname == self.current_tab:
-            self.current_tab = None
-            self.tabs[tabname].pack_forget()
-            del self.tabs[tabname]
-            self.switch_tab(self.tabs.keys()[0])
-        
-        else: del self.tabs[tabname]
-        
-        self.buttons[tabname].pack_forget()
-        del self.buttons[tabname] 
-        
-    
-    def switch_tab(self, name):
-        if self.current_tab:
-            self.buttons[self.current_tab].config(relief=BASE)
-            self.tabs[self.current_tab].pack_forget()            # hide the current tab
-        self.tabs[name].pack(side=BOTTOM)                            # add the new tab to the display
-        self.current_tab = name                                    # set the current tab to itself
-        
-        self.buttons[name].config(relief=SELECTED)                    # set it to the selected style
-
-class Step:
-    def __init__(self, step=0, variable=None, value=None, energy = None):
-        self.step = step
-        self.variable = variable
-        self.value = value
-    def __str__(self):
-        return " {0.step}        {0.variable}          {0.value}".format(self)
-    
-class Point:
-    def __init__(self, step=None, coordinate=None, energy = None):
-        self.step = step
-        self.coordinate = coordinate
-        self.energy = energy 
-    def __str__(self):
-        return " {0.step}                {0.coordinate}              {0.energy}".format(self)
-    
-class UB3LYP:
-    def __init__(self, n = 0, E = None):
-        self.E = E
-        self.n = n
-    def __str__(self):
-            
-            return " {0.n}            {0.E}".format(self)
-
-class Coordinates:
-    def __init__(self, x=0, y=0, z=0):
-        self.x = x
-        self.y = y
-        self.z = z
-    def __str__(self):
-        return "<{0.x}, {0.y}, {0.z}>".format(self)
-    
-class Electron:
-    def __init__(self, center_number, atomic_number, atomic_type, coordinates):
-        self.center_number = center_number
-        self.atomic_number = atomic_number
-        self.atomic_type = atomic_type
-        self.coordinates = coordinates
-    def __str__(self):
-        return "{0.center_number}          {0.atomic_number}       {0.atomic_type}   {0.coordinates}".format(self)
-class Angle:
-    def __init__(self, combinations='', angle=0):
-        self.combinations = combinations
-        self.angle = angle
-    def __str__(self):
-        return "{0.combinations}            {0.angle}".format(self)
-
-class UBHFLYP:
-    def __init__(self, n = 0, E = 0):
-        self.E = E
-        self.n = n
-    def __str__(self):
-        return " {0.n}            {0.E}".format(self)
-    
 def report_zMatrix(zMatrix, Matrix_number):
     if verbose == True:
         print("======================Z-MATRIX {}======================".format(Matrix_number))
@@ -265,41 +158,8 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
         print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
         
-def dualm(index):
-    #verbose_anything = False
-    if verbose == True:
-        log.write("\n\n{}\n\n".format(file))
-    if int(checkBox8_v.get()) == 0:
-        return
-    global n
-    global dual
-    n = 0
-    count = 0
-    try:
-        with open(file, "r") as f:
-            for line in f:
-                if " \n" == line: count = 1
-                elif count == 1: count += 1
-                elif count == 2: count += 1
-                if "augmentation occupancies" not in line and count == 3:
-                    x, *y = line.split(" ")
-                    for item in y:
-                        if item != ' ' and item != '':
-                            dual[index] += 1
-                    #if verbose_anything == True:
-                    #    log.write("{}\n".format(y))
-                elif "augmentation occupancies" in line and verbose == True:
-                    #verbose_anything = True
-                    log.write("{} - line {}\n".format(dual,n))
-                    log.write("{}\n".format(line))
-                else:
-                    pass
-                n+=1
-        if verbose == True:
-            log.write("\n\nTask completed with code {}\n\n".format(dual))
-    except(FileNotFoundError):
-        print("File Not Found\n=======================ABORTED======================")
-def go():  
+
+def go():
     def process():
         global n
         global file
@@ -312,7 +172,7 @@ def go():
         internal_angles = []
         zMatrix = []
         ubhflyp=[int(0)]
-        if checkfile() == False:
+        if checkfile(file) == False:
             print("File Not Found\n=======================ABORTED======================")
             return 
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
@@ -625,11 +485,47 @@ def go():
             log.write("{}\n\n".format(err.args))
             print("Error details saved into the log file.")
         print("=======================ABORTED======================")
-        
-        
+   
+def dualm(index):
+    #verbose_anything = False
+    if verbose == True:
+        log.write("\n\n{}\n\n".format(file))
+    if int(checkBox8_v.get()) == 0:
+        return
+    global n
+    global dual
+    n = 0
+    count = 0
+    try:
+        with open(file, "r") as f:
+            for line in f:
+                if " \n" == line: count = 1
+                elif count == 1: count += 1
+                elif count == 2: count += 1
+                if "augmentation occupancies" not in line and count == 3:
+                    x, *y = line.split(" ")
+                    for item in y:
+                        if item != ' ' and item != '':
+                            dual[index] += 1
+                    #if verbose_anything == True:
+                    #    log.write("{}\n".format(y))
+                elif "augmentation occupancies" in line and verbose == True:
+                    #verbose_anything = True
+                    log.write("{} - line {}\n".format(dual,n))
+                    log.write("{}\n".format(line))
+                else:
+                    pass
+                n+=1
+        if verbose == True:
+            log.write("\n\nTask completed with code {}\n\n".format(dual))
+    except(FileNotFoundError):
+        print("File Not Found\n=======================ABORTED======================")   
+      
+      
 def main():
     def write(x): print (x)
     global file
+    global textBox2
     def initialize():
         textBox2.delete(1.0, END) 
         print("========================START=======================")
@@ -657,7 +553,7 @@ def main():
             print("========================ERROR=======================")
             print("If you want to enable Dual mode in Settings tab, you have to unselect all other options.\nJust Dual and Verbose are allowed to work together\n=======================ABORTED======================")
             return False
-        if checkfile() == False:
+        if checkfile(file) == False:
             print("File Not Found\n=======================ABORTED======================")
             return
         import time
