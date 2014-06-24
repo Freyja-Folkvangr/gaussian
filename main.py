@@ -92,7 +92,7 @@ def report_zMatrix(zMatrix, Matrix_number):
     if verbose == True:
         print("======================Z-MATRIX {}======================".format(Matrix_number))
         log.write("======================Z-MATRIX {}======================\n".format(Matrix_number))
-        log.write("NUMBER    Atom    Type      Coords")
+        log.write("NUMBER    Atom    Type      Coords\n")
     else: print("======================Z-MATRIX======================")
     print("NUMBER    Atom    Type      Coords")
     for item in zMatrix:
