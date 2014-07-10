@@ -1,13 +1,12 @@
 '''
 Created on Mar 26, 2014
-
 @author: giuliano
 
 Tabbed interface script
 www.sunjay-varma.com
 '''
-
 __doc__ = info = '''
+See the changelog and download updates at:
 http://www.github.com/evergreen2/gaussian
 '''
 
@@ -82,11 +81,11 @@ def load_file():
             else:
                 print("=======================ABORTED======================")
                 return False
-                
+
     except (RuntimeError, IOError) as inst:
             print ("There was an error while oppening the file.\n {}".format(file))
             print(type(inst))
-            print(inst) 
+            print(inst)
 
 def report_zMatrix(zMatrix, Matrix_number):
     if verbose == True:
@@ -98,7 +97,7 @@ def report_zMatrix(zMatrix, Matrix_number):
     for item in zMatrix:
         print(item)
         if verbose == True: log.write("{}\n".format(item))
-        
+
 def report_angles(internal_angles, Matrix_number):
     if verbose == True:
         print("==================INTERNAL-ANGLES {}===================".format(Matrix_number))
@@ -109,9 +108,9 @@ def report_angles(internal_angles, Matrix_number):
     for item in internal_angles:
         print(item)
         if verbose == True: log.write("{}\n".format(item))
-        
 
-    
+
+
 def report_Standard_orientation(Standard_orientation, Matrix_number):
     if verbose == True:
         print("================STANDARD ORIENTATION {}================".format(Matrix_number))
@@ -122,7 +121,7 @@ def report_Standard_orientation(Standard_orientation, Matrix_number):
     for item in Standard_orientation:
         print(item)
         if verbose == True: log.write("{}\n".format(item))
-        
+
 def report_orbitals(aocc, bocc, avirt, bvirt):
     global itineration
     itineration += 1
@@ -157,7 +156,7 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("HOMO|  {}".format(bocc[len(bocc) - 1]))
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
         print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
-        
+
 
 def go():
     def process():
@@ -174,7 +173,7 @@ def go():
         ubhflyp=[int(0)]
         if checkfile(file) == False:
             print("File Not Found\n=======================ABORTED======================")
-            return 
+            return
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
         aocc = []
         bocc = []
@@ -352,7 +351,7 @@ def go():
                     print("{} in HF (E)".format(type(err)))
                     if verbose == True:
                         log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
-                            
+
             elif ("GradGradGradGradGradGradGrad" in line or "Initial guess <" in line) and (int(checkBox2_v.get()) == 1 or int(checkBox3_v.get()) == 1):
                 if verbose == True and (aocc != [] and avirt != []):
                     bocc.sort()
@@ -466,10 +465,10 @@ def go():
                         print("{}".format(ubhflyp[len(ubhflyp)-1]))
                     else:
                         pass
-                        
+
             if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
             if Energy[2] == 1: print("-Many HF found, see details in log file")
-        
+
     try:
         with open(file, "r", encoding="latin-1") as f:
             process()
@@ -485,7 +484,7 @@ def go():
             log.write("{}\n\n".format(err.args))
             print("Error details saved into the log file.")
         print("=======================ABORTED======================")
-   
+
 def dualm(index):
     #verbose_anything = False
     if verbose == True:
@@ -519,15 +518,15 @@ def dualm(index):
         if verbose == True:
             log.write("\n\nTask completed with code {}\n\n".format(dual))
     except(FileNotFoundError):
-        print("File Not Found\n=======================ABORTED======================")   
-      
-      
+        print("File Not Found\n=======================ABORTED======================")
+
+
 def main():
     def write(x): print (x)
     global file
     global textBox2
     def initialize():
-        textBox2.delete(1.0, END) 
+        textBox2.delete(1.0, END)
         print("========================START=======================")
         global verbose
         global checkBox1_v
@@ -578,13 +577,13 @@ def main():
         if verbose == True: log.close()
         dualStr = 'first'
         return True
-        
+
     root = Tk()
     root.title("Gaussian 09 simple AWK (BETA 2)")
     root.resizable(0, 0)
-    
+
     bar = TabBar(root, "Info")
-    
+
     # ======== CONSOLE TAB =========
     tab1 = Tab(root, "Console")                # notice how this one's master is the root instead of the bar
     #FILE BROWSER
@@ -592,31 +591,31 @@ def main():
     textBox1_v = StringVar()
     textBox1 = Entry(tab1, textvariable=textBox1_v, width=55, state="disabled").grid(padx=1, pady=5, sticky=NW, columnspan=40)
     textBox1_v.set(file)
-    
+
     button1 = Button(tab1, text="Open...", command=lambda:load_file()).grid(pady=2, sticky=NW, row=0, column=41)
     button2 = Button(tab1, text="Execute", command=lambda: initialize()).grid(pady=0, sticky=NW, column=41, row=1)
-    
+
     #CONSOLE
     global textBox2
     textBox2_v = StringVar()
     textBox2 = Text(tab1, height=34, width=75, wrap='word', bd=1, relief=RIDGE, highlightthickness=0)
     textBox2.grid(padx=0, pady=0, row=2, column=0, sticky=NW, columnspan=50, rowspan=50)
     sys.stdout = StdoutRedirector(textBox2)
-    
+
     #textBox2 = Text(tab1, width=63, height=1, bd=1, relief=RIDGE, highlightthickness=0)
     #textBox2.focus()
     #textBox2.grid(padx=0, pady=0, row=71, column=0, sticky=NW, columnspan=50, rowspan=34)
     #Button(tab1, text="Send", command=(lambda: write(textBox2.get('1.0', END).strip()))).grid(pady=0, sticky=NW, column=41, row=71)
-    
-    
-    
+
+
+
     # ======== SETTINGS TAB =========
     tab2 = Tab(root, "Settings")
-    
+
     global checkBox1_v
     checkBox1_v = IntVar()
     checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
-    
+
     global checkBox2_v
     checkBox2_v = IntVar()
     checkBox2 = Checkbutton(tab2, text="HOMO and LUMO", variable=checkBox2_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=1, column=0, columnspan=1)
@@ -624,7 +623,7 @@ def main():
     global checkBox3_v
     checkBox3_v = IntVar()
     checkBox3 = Checkbutton(tab2, text="Standard orientation matrix", variable=checkBox3_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=1, column=1, columnspan=1)
-    
+
     global checkBox4_v
     checkBox4_v = IntVar()
     checkBox4 = Checkbutton(tab2, text="zMatrix", variable=checkBox4_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=2, column=0, columnspan=1)
@@ -632,35 +631,35 @@ def main():
     global checkBox5_v
     checkBox5_v = IntVar()
     checkBox5 = Checkbutton(tab2, text="Interatomic Angles", variable=checkBox5_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=2, column=1, columnspan=1)
-    
+
     global checkBox6_v
     checkBox6_v = IntVar()
     checkBox6 = Checkbutton(tab2, text="Steps", variable=checkBox6_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=3, column=1, columnspan=1)
-    
+
     global checkBox7_v
     checkBox7_v = IntVar()
     checkBox7 = Checkbutton(tab2, text="Points", variable=checkBox7_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=3, column=0, columnspan=1)
-    
+
     global checkBox8_v
     checkBox8_v = IntVar()
     checkBox8 = Checkbutton(tab2, text="Dual", variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
-    
+
 
     tab3 = Tab(root, "Info")
     Label(tab3, bg='white', text="BETA version, report bugs in:\n"+info).pack(side=LEFT, expand=YES, fill=BOTH)
-    
+
     bar.add(tab1)                   # add the tabs to the tab bar
     bar.add(tab2)
     bar.add(tab3)
-    
+
 
     bar.config(bd=1, relief=RIDGE)            # add some border
-    
+
     bar.show()
-    
+
     root.mainloop()
 
 if __name__ == '__main__':
     main()
-    
+
 sys.stdout = old_stdout
