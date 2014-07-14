@@ -89,6 +89,9 @@ def load_file():
             print(inst) 
 =======
             print(inst)
+<<<<<<< HEAD:main.py
+>>>>>>> SP-mode:main.py
+=======
 >>>>>>> SP-mode:main.py
 
 def report_zMatrix(zMatrix, Matrix_number):
@@ -161,7 +164,11 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
         print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
 <<<<<<< HEAD:main.py
+<<<<<<< HEAD:main.py
         
+=======
+
+>>>>>>> SP-mode:main.py
 =======
 
 >>>>>>> SP-mode:main.py
@@ -560,7 +567,11 @@ def go():
                     else:
                         pass
 <<<<<<< HEAD:main.py
+<<<<<<< HEAD:main.py
                         
+=======
+
+>>>>>>> SP-mode:main.py
 =======
 
 >>>>>>> SP-mode:main.py
@@ -583,7 +594,11 @@ def go():
             print("Error details saved into the log file.")
         print("=======================ABORTED======================")
 <<<<<<< HEAD:main.py
+<<<<<<< HEAD:main.py
    
+=======
+
+>>>>>>> SP-mode:main.py
 =======
 
 >>>>>>> SP-mode:main.py
@@ -621,9 +636,15 @@ def dualm(index):
             log.write("\n\nTask completed with code {}\n\n".format(dual))
     except(FileNotFoundError):
 <<<<<<< HEAD:main.py
+<<<<<<< HEAD:main.py
         print("File Not Found\n=======================ABORTED======================")   
       
       
+=======
+        print("File Not Found\n=======================ABORTED======================")
+
+
+>>>>>>> SP-mode:main.py
 =======
         print("File Not Found\n=======================ABORTED======================")
 
