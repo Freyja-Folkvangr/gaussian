@@ -164,6 +164,7 @@ def go():
         global file
         global verbose
         global itineration
+        path=[{"Maximum points per path":None,"Step size":None, "Last path":None}]
         itineration = 0
         n = 0
         Line_number = 0
@@ -180,9 +181,10 @@ def go():
         avirt = []
         bvirt = []
         Standard_orientation = []
-        steps=[]
-        points=[]
-        ub3lyp=[int(0)]
+        steps = []
+        points = []
+        SP_points = []
+        ub3lyp = [int(0)]
         for line in f:
             Line_number += 1
             n += 1
@@ -326,6 +328,72 @@ def go():
                             else: k += 1
                         p=Point(int(y[0]), float(y[1]), None)
                         points.append(p)
+            if int(checkBox9_v.get()) == 1:
+                if "INPUT DATA FOR" in line:
+                    #Getting the input configuration
+                    import linecache
+                    j = 2
+                    while path[0]["Maximum points per path"] == None and path[0]["Step size"] == None:
+                        if "Maximum points per path" in linecache.getline(file, n + j):
+                            x, *y = linecache.getline(file, n + j).split("=")
+                            path[0]["Maximum points per path"] = int(y[0])
+                        elif "Step size" in linecache.getline(file, n + j):
+                            x, *y = linecache.getline(file, n + j).split("=")
+                            path[0]["Step size"] = int(y[0])
+                        j += 1
+                elif "Cartesian Forces" in line:
+                    tmp = None
+                    import linecache
+                    #Getting the point number and path number
+                    j = 2
+                    while True:
+                        if "Point Number:" in linecache.getline(file, n + j) and "Path Number:" in linecache.getline(file, n + j):
+                            tmp=''
+                            for item in linecache.getline(file, n + j):
+                                if item != '' and item != ' ' and item != ':':
+                                    tmp += item
+                            x, *y = tmp.split('PointNumber')
+                            x, *y = y[0].split('PathNumber')
+                            SP_point_number = int(x)
+                            SP_path_number = int(y[0])
+                            break
+                        elif "Input orientation" in linecache.getline(file, n + j) or "IRC-IRC-IRC-IRC-IRC" in linecache.getline(file, n + j):
+                            tmp = 'skip'
+                            if verbose == True:
+                                log.write('Warning: Incomplete point! Line: {}\n'.format(n))
+                                print('Warning: Incomplete point! Line: {}'.format(n))
+                                break
+                            else:
+                                print('Warning: Incomplete point! Line: {}'.format(n))
+                                break
+                        j += 1
+                    #Getting the output matrix
+                    output_matrix = []
+                    j = -2
+                    if tmp != 'skip':
+                        while "----" not in linecache.getline(file, n + j):
+                            x, *y = linecache.getline(file, n + j).split(" ")
+                            tmp = y
+                            y = []
+                            #Cleaning up the spaces
+                            for item in tmp:
+                                if item != '' and item != ' ': y.append(item)
+                            coords = Coordinates(float(y[2]), float(y[3]), float(y[4]))
+                            electron = Electron(y[0], y[1], None, coords)
+                            output_matrix.append(electron)
+                            j -= 1
+                        if path[0]["Last path"] == SP_path_number:
+                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                        elif path[0]["Last path"] == None:
+                            path[0]["Last path"] = int(SP_path_number)
+                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                        elif path[0]["Last path"] != SP_path_number:
+                            path.append(SP_points)
+                            SP_points = []
+                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            path[0]["Last path"] = int(SP_path_number)
+                    else:
+                        tmp2 = None
             if "HF=" in line:
                 x, *y = line.split('HF=')
                 x, *y = y[0].split('\\')
@@ -380,8 +448,10 @@ def go():
                 if "E(UB+HF-LYP)" in line:
                     x, *y = line.split("=")
                     x, *y = y[0].split(" ")
-                    for item in y:
-                        if item == "": y.remove(item)
+                    tmp = y
+                    y = []
+                    for item in tmp:
+                        if item != '' and item != ' ': y.append(item)
                     e=UBHFLYP(ubhflyp[0] +1, float(y[0]))
                     ubhflyp.append(e)
                     ubhflyp[0] += 1
@@ -394,11 +464,27 @@ def go():
                     ub3lyp.append(e)
                     ub3lyp[0] += + 1
                 else: pass
-            elif "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
+
+            if "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
                                                                 int(checkBox3_v.get()) == 1 or
                                                                 int(checkBox4_v.get()) == 1 or
                                                                int(checkBox6_v.get()) == 1 or
-                                                               int(checkBox7_v.get()) == 1):
+                                                               int(checkBox7_v.get()) == 1 or
+                                                               int(checkBox9_v.get()) == 1):
+                if int(checkBox9_v.get()) == 1:
+                    path.append(SP_points)
+                    SP_points = []
+                    if verbose == True:
+                        tmp=''
+                        for item in path:
+                            if len(tmp) > 0:
+                                tmp += ("-{}".format(len(item)-1))
+                            else:
+                                tmp += ("{}".format(len(item)-1))
+                        log.write("-Data inside path: {}\n\n".format(tmp))
+                        #log.write("{}\n\n\n\n".format(path[0]))
+                        #log.write("points: {}\n\n\n\n".format(SP_points))
+                        log.write("{}\n".format(path))
                 if int(checkBox6_v.get()) == 1:
                     if steps != []:
                         if verbose == True:
@@ -643,6 +729,10 @@ def main():
     global checkBox8_v
     checkBox8_v = IntVar()
     checkBox8 = Checkbutton(tab2, text="Dual", variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
+
+    global checkBox9_v
+    checkBox9_v = IntVar()
+    checkBox9 = Checkbutton(tab2, text="SP", variable=checkBox9_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=1, columnspan=1)
 
 
     tab3 = Tab(root, "Info")
