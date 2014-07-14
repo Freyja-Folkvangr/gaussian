@@ -1,13 +1,12 @@
 '''
 Created on Mar 26, 2014
-
 @author: giuliano
 
 Tabbed interface script
 www.sunjay-varma.com
 '''
-
 __doc__ = info = '''
+See the changelog and download updates at:
 http://www.github.com/evergreen2/gaussian
 '''
 
@@ -82,23 +81,27 @@ def load_file():
             else:
                 print("=======================ABORTED======================")
                 return False
-                
+
     except (RuntimeError, IOError) as inst:
             print ("There was an error while oppening the file.\n {}".format(file))
             print(type(inst))
+<<<<<<< HEAD:main.py
             print(inst) 
+=======
+            print(inst)
+>>>>>>> SP-mode:main.py
 
 def report_zMatrix(zMatrix, Matrix_number):
     if verbose == True:
         print("======================Z-MATRIX {}======================".format(Matrix_number))
         log.write("======================Z-MATRIX {}======================\n".format(Matrix_number))
-        log.write("NUMBER    Atom    Type      Coords")
+        log.write("NUMBER    Atom    Type      Coords\n")
     else: print("======================Z-MATRIX======================")
     print("NUMBER    Atom    Type      Coords")
     for item in zMatrix:
         print(item)
         if verbose == True: log.write("{}\n".format(item))
-        
+
 def report_angles(internal_angles, Matrix_number):
     if verbose == True:
         print("==================INTERNAL-ANGLES {}===================".format(Matrix_number))
@@ -109,9 +112,9 @@ def report_angles(internal_angles, Matrix_number):
     for item in internal_angles:
         print(item)
         if verbose == True: log.write("{}\n".format(item))
-        
 
-    
+
+
 def report_Standard_orientation(Standard_orientation, Matrix_number):
     if verbose == True:
         print("================STANDARD ORIENTATION {}================".format(Matrix_number))
@@ -122,7 +125,7 @@ def report_Standard_orientation(Standard_orientation, Matrix_number):
     for item in Standard_orientation:
         print(item)
         if verbose == True: log.write("{}\n".format(item))
-        
+
 def report_orbitals(aocc, bocc, avirt, bvirt):
     global itineration
     itineration += 1
@@ -157,7 +160,11 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("HOMO|  {}".format(bocc[len(bocc) - 1]))
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
         print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
+<<<<<<< HEAD:main.py
         
+=======
+
+>>>>>>> SP-mode:main.py
 
 def go():
     def process():
@@ -165,6 +172,7 @@ def go():
         global file
         global verbose
         global itineration
+        path=[{"Maximum points per path":None,"Step size":None, "Last path":None}]
         itineration = 0
         n = 0
         Line_number = 0
@@ -174,16 +182,17 @@ def go():
         ubhflyp=[int(0)]
         if checkfile(file) == False:
             print("File Not Found\n=======================ABORTED======================")
-            return 
+            return
         Energy = (None, None, 0) #[E, type, found multiple HF values?] Types: 1=Hartree-Fock
         aocc = []
         bocc = []
         avirt = []
         bvirt = []
         Standard_orientation = []
-        steps=[]
-        points=[]
-        ub3lyp=[int(0)]
+        steps = []
+        points = []
+        SP_points = []
+        ub3lyp = [int(0)]
         for line in f:
             Line_number += 1
             n += 1
@@ -327,6 +336,72 @@ def go():
                             else: k += 1
                         p=Point(int(y[0]), float(y[1]), None)
                         points.append(p)
+            if int(checkBox9_v.get()) == 1:
+                if "INPUT DATA FOR" in line:
+                    #Getting the input configuration
+                    import linecache
+                    j = 2
+                    while path[0]["Maximum points per path"] == None and path[0]["Step size"] == None:
+                        if "Maximum points per path" in linecache.getline(file, n + j):
+                            x, *y = linecache.getline(file, n + j).split("=")
+                            path[0]["Maximum points per path"] = int(y[0])
+                        elif "Step size" in linecache.getline(file, n + j):
+                            x, *y = linecache.getline(file, n + j).split("=")
+                            path[0]["Step size"] = int(y[0])
+                        j += 1
+                elif "Cartesian Forces" in line:
+                    tmp = None
+                    import linecache
+                    #Getting the point number and path number
+                    j = 2
+                    while True:
+                        if "Point Number:" in linecache.getline(file, n + j) and "Path Number:" in linecache.getline(file, n + j):
+                            tmp=''
+                            for item in linecache.getline(file, n + j):
+                                if item != '' and item != ' ' and item != ':':
+                                    tmp += item
+                            x, *y = tmp.split('PointNumber')
+                            x, *y = y[0].split('PathNumber')
+                            SP_point_number = int(x)
+                            SP_path_number = int(y[0])
+                            break
+                        elif "Input orientation" in linecache.getline(file, n + j) or "IRC-IRC-IRC-IRC-IRC" in linecache.getline(file, n + j):
+                            tmp = 'skip'
+                            if verbose == True:
+                                log.write('Warning: Incomplete point! Line: {}\n'.format(n))
+                                print('Warning: Incomplete point! Line: {}'.format(n))
+                                break
+                            else:
+                                print('Warning: Incomplete point! Line: {}'.format(n))
+                                break
+                        j += 1
+                    #Getting the output matrix
+                    output_matrix = []
+                    j = -2
+                    if tmp != 'skip':
+                        while "----" not in linecache.getline(file, n + j):
+                            x, *y = linecache.getline(file, n + j).split(" ")
+                            tmp = y
+                            y = []
+                            #Cleaning up the spaces
+                            for item in tmp:
+                                if item != '' and item != ' ': y.append(item)
+                            coords = Coordinates(float(y[2]), float(y[3]), float(y[4]))
+                            electron = Electron(y[0], y[1], None, coords)
+                            output_matrix.append(electron)
+                            j -= 1
+                        if path[0]["Last path"] == SP_path_number:
+                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                        elif path[0]["Last path"] == None:
+                            path[0]["Last path"] = int(SP_path_number)
+                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                        elif path[0]["Last path"] != SP_path_number:
+                            path.append(SP_points)
+                            SP_points = []
+                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            path[0]["Last path"] = int(SP_path_number)
+                    else:
+                        tmp2 = None
             if "HF=" in line:
                 x, *y = line.split('HF=')
                 x, *y = y[0].split('\\')
@@ -352,7 +427,7 @@ def go():
                     print("{} in HF (E)".format(type(err)))
                     if verbose == True:
                         log.write("{1} in HF (E)\nError: {2}\n Tuple: {3}\n".format(type(err), err, Energy))
-                            
+
             elif ("GradGradGradGradGradGradGrad" in line or "Initial guess <" in line) and (int(checkBox2_v.get()) == 1 or int(checkBox3_v.get()) == 1):
                 if verbose == True and (aocc != [] and avirt != []):
                     bocc.sort()
@@ -381,8 +456,10 @@ def go():
                 if "E(UB+HF-LYP)" in line:
                     x, *y = line.split("=")
                     x, *y = y[0].split(" ")
-                    for item in y:
-                        if item == "": y.remove(item)
+                    tmp = y
+                    y = []
+                    for item in tmp:
+                        if item != '' and item != ' ': y.append(item)
                     e=UBHFLYP(ubhflyp[0] +1, float(y[0]))
                     ubhflyp.append(e)
                     ubhflyp[0] += 1
@@ -395,11 +472,27 @@ def go():
                     ub3lyp.append(e)
                     ub3lyp[0] += + 1
                 else: pass
-            elif "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
+
+            if "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
                                                                 int(checkBox3_v.get()) == 1 or
                                                                 int(checkBox4_v.get()) == 1 or
                                                                int(checkBox6_v.get()) == 1 or
-                                                               int(checkBox7_v.get()) == 1):
+                                                               int(checkBox7_v.get()) == 1 or
+                                                               int(checkBox9_v.get()) == 1):
+                if int(checkBox9_v.get()) == 1:
+                    path.append(SP_points)
+                    SP_points = []
+                    if verbose == True:
+                        tmp=''
+                        for item in path:
+                            if len(tmp) > 0:
+                                tmp += ("-{}".format(len(item)-1))
+                            else:
+                                tmp += ("{}".format(len(item)-1))
+                        log.write("-Data inside path: {}\n\n".format(tmp))
+                        #log.write("{}\n\n\n\n".format(path[0]))
+                        #log.write("points: {}\n\n\n\n".format(SP_points))
+                        log.write("{}\n".format(path))
                 if int(checkBox6_v.get()) == 1:
                     if steps != []:
                         if verbose == True:
@@ -466,10 +559,14 @@ def go():
                         print("{}".format(ubhflyp[len(ubhflyp)-1]))
                     else:
                         pass
+<<<<<<< HEAD:main.py
                         
+=======
+
+>>>>>>> SP-mode:main.py
             if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
             if Energy[2] == 1: print("-Many HF found, see details in log file")
-        
+
     try:
         with open(file, "r", encoding="latin-1") as f:
             process()
@@ -485,7 +582,11 @@ def go():
             log.write("{}\n\n".format(err.args))
             print("Error details saved into the log file.")
         print("=======================ABORTED======================")
+<<<<<<< HEAD:main.py
    
+=======
+
+>>>>>>> SP-mode:main.py
 def dualm(index):
     #verbose_anything = False
     if verbose == True:
@@ -519,15 +620,21 @@ def dualm(index):
         if verbose == True:
             log.write("\n\nTask completed with code {}\n\n".format(dual))
     except(FileNotFoundError):
+<<<<<<< HEAD:main.py
         print("File Not Found\n=======================ABORTED======================")   
       
       
+=======
+        print("File Not Found\n=======================ABORTED======================")
+
+
+>>>>>>> SP-mode:main.py
 def main():
     def write(x): print (x)
     global file
     global textBox2
     def initialize():
-        textBox2.delete(1.0, END) 
+        textBox2.delete(1.0, END)
         print("========================START=======================")
         global verbose
         global checkBox1_v
@@ -578,13 +685,13 @@ def main():
         if verbose == True: log.close()
         dualStr = 'first'
         return True
-        
+
     root = Tk()
     root.title("Gaussian 09 simple AWK (BETA 2)")
     root.resizable(0, 0)
-    
+
     bar = TabBar(root, "Info")
-    
+
     # ======== CONSOLE TAB =========
     tab1 = Tab(root, "Console")                # notice how this one's master is the root instead of the bar
     #FILE BROWSER
@@ -592,31 +699,31 @@ def main():
     textBox1_v = StringVar()
     textBox1 = Entry(tab1, textvariable=textBox1_v, width=55, state="disabled").grid(padx=1, pady=5, sticky=NW, columnspan=40)
     textBox1_v.set(file)
-    
+
     button1 = Button(tab1, text="Open...", command=lambda:load_file()).grid(pady=2, sticky=NW, row=0, column=41)
     button2 = Button(tab1, text="Execute", command=lambda: initialize()).grid(pady=0, sticky=NW, column=41, row=1)
-    
+
     #CONSOLE
     global textBox2
     textBox2_v = StringVar()
     textBox2 = Text(tab1, height=34, width=75, wrap='word', bd=1, relief=RIDGE, highlightthickness=0)
     textBox2.grid(padx=0, pady=0, row=2, column=0, sticky=NW, columnspan=50, rowspan=50)
     sys.stdout = StdoutRedirector(textBox2)
-    
+
     #textBox2 = Text(tab1, width=63, height=1, bd=1, relief=RIDGE, highlightthickness=0)
     #textBox2.focus()
     #textBox2.grid(padx=0, pady=0, row=71, column=0, sticky=NW, columnspan=50, rowspan=34)
     #Button(tab1, text="Send", command=(lambda: write(textBox2.get('1.0', END).strip()))).grid(pady=0, sticky=NW, column=41, row=71)
-    
-    
-    
+
+
+
     # ======== SETTINGS TAB =========
     tab2 = Tab(root, "Settings")
-    
+
     global checkBox1_v
     checkBox1_v = IntVar()
     checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
-    
+
     global checkBox2_v
     checkBox2_v = IntVar()
     checkBox2 = Checkbutton(tab2, text="HOMO and LUMO", variable=checkBox2_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=1, column=0, columnspan=1)
@@ -624,7 +731,7 @@ def main():
     global checkBox3_v
     checkBox3_v = IntVar()
     checkBox3 = Checkbutton(tab2, text="Standard orientation matrix", variable=checkBox3_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=1, column=1, columnspan=1)
-    
+
     global checkBox4_v
     checkBox4_v = IntVar()
     checkBox4 = Checkbutton(tab2, text="zMatrix", variable=checkBox4_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=2, column=0, columnspan=1)
@@ -632,35 +739,39 @@ def main():
     global checkBox5_v
     checkBox5_v = IntVar()
     checkBox5 = Checkbutton(tab2, text="Interatomic Angles", variable=checkBox5_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=2, column=1, columnspan=1)
-    
+
     global checkBox6_v
     checkBox6_v = IntVar()
     checkBox6 = Checkbutton(tab2, text="Steps", variable=checkBox6_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=3, column=1, columnspan=1)
-    
+
     global checkBox7_v
     checkBox7_v = IntVar()
     checkBox7 = Checkbutton(tab2, text="Points", variable=checkBox7_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=3, column=0, columnspan=1)
-    
+
     global checkBox8_v
     checkBox8_v = IntVar()
     checkBox8 = Checkbutton(tab2, text="Dual", variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
-    
+
+    global checkBox9_v
+    checkBox9_v = IntVar()
+    checkBox9 = Checkbutton(tab2, text="SP", variable=checkBox9_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=1, columnspan=1)
+
 
     tab3 = Tab(root, "Info")
     Label(tab3, bg='white', text="BETA version, report bugs in:\n"+info).pack(side=LEFT, expand=YES, fill=BOTH)
-    
+
     bar.add(tab1)                   # add the tabs to the tab bar
     bar.add(tab2)
     bar.add(tab3)
-    
+
 
     bar.config(bd=1, relief=RIDGE)            # add some border
-    
+
     bar.show()
-    
+
     root.mainloop()
 
 if __name__ == '__main__':
     main()
-    
+
 sys.stdout = old_stdout
