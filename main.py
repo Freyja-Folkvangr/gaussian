@@ -157,6 +157,8 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
         print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
 
+def generate_multi-step(data, type='SP'):
+    pass
 
 def go():
     def process():
