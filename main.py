@@ -157,7 +157,7 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
         print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
 
-def generate_multi-step(data, type='SP'):
+def generate_multi_step(data, type='SP'):
     pass
 
 def go():
@@ -473,6 +473,25 @@ def go():
                                                                int(checkBox6_v.get()) == 1 or
                                                                int(checkBox7_v.get()) == 1 or
                                                                int(checkBox9_v.get()) == 1):
+                link_status = False
+                multi_step = open("results.com", "w")
+                multi_step.close()
+                multi_step = open("results.com", "a")
+                for path_number in path:
+                    if isinstance(path_number, list):
+                        for point in path_number:
+                            if verbose == True:
+                                if link_status == True: multi_step.write("--Link1--\n")
+                                multi_step.write("%chk=irc.chk\n")
+                                multi_step.write("%mem=6GB\n")
+                                multi_step.write("# b3lyp/6-31g(d) nosymm scf=qc test\n\n")
+                                multi_step.write("SP {}\n\n".format(point["Output"]["Point number"]))
+                                multi_step.write("0 1\n")
+                                link_status = True
+                                #log.write("\n==============MATRIX FOR POINT {} AND PATH {}=============\n".format(point["Output"]["Point number"], point["Output"]["Path number"]))
+                            for matrix_element in point["Output"]["Matrix"]:
+                                if verbose == True:
+                                    multi_step.write("   {}    {}\n".format(matrix_element.atomic_number,matrix_element.coordinates))
                 if int(checkBox9_v.get()) == 1:
                     path.append(SP_points)
                     SP_points = []
@@ -629,6 +648,7 @@ def main():
             log = open("results.txt", "a")
             print("NOTE: Logs are turned on")
             print("NOTE 2: Saving Gauss09 sAWK logs in 'results.txt'")
+            if int(checkBox9_v.get()) == 1: print("NOTE 3: Saving multi-step file as 'results.com'")
         else: verbose = False
         if int(checkBox8_v.get()) == 1 and (
             int(checkBox2_v.get()) == 1 or

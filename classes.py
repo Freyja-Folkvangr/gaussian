@@ -34,7 +34,7 @@ class Coordinates:
         self.y = y
         self.z = z
     def __str__(self):
-        return "<{0.x}, {0.y}, {0.z}>".format(self)
+        return "{0.x}   {0.y}   {0.z}".format(self)
     
 class Electron:
     def __init__(self, center_number, atomic_number, atomic_type, coordinates):
