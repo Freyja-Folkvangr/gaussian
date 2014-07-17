@@ -14,6 +14,9 @@ import sys
 from classes import *
 from tab_constructor import *
 from tkinter import *
+from elements import *
+
+
 old_stdout = sys.stdout
 
 global t0
@@ -156,6 +159,14 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print("HOMO|  {}".format(bocc[len(bocc) - 1]))
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
         print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
+
+
+def to_element(atomic_number):
+    for element in ELEMENTS:
+        if int(element.number) == int(atomic_number):
+            return element.symbol
+        else: pass
+    return atomic_number
 
 def generate_multi_step(data, type='SP'):
     pass
@@ -473,6 +484,7 @@ def go():
                                                                int(checkBox6_v.get()) == 1 or
                                                                int(checkBox7_v.get()) == 1 or
                                                                int(checkBox9_v.get()) == 1):
+
                 link_status = False
                 multi_step = open("results.com", "w")
                 multi_step.close()
@@ -498,6 +510,11 @@ def go():
                     if verbose == True:
                         tmp=''
                         for item in path:
+                            log.write("tipo: {}\n".format(type(item)))
+                            if len(tmp) > 0:
+                                tmp += ("-{}".format(len(item)))
+                            else:
+                                tmp += ("{}".format(len(item)))
                             if len(tmp) > 0:
                                 tmp += ("-{}".format(len(item)-1))
                             else:
@@ -506,6 +523,30 @@ def go():
                         #log.write("{}\n\n\n\n".format(path[0]))
                         #log.write("points: {}\n\n\n\n".format(SP_points))
                         log.write("{}\n".format(path))
+                    link_status = False
+                    multi_step = open("results.com", "w")
+                    multi_step.close()
+                    multi_step = open("results.com", "a")
+                    i = 0
+                    for path_number in path:
+                        print("item no: {} type: {}".format(path.index(path_number), type(path_number)))
+                        if isinstance(path_number, list):
+                            for point in path_number:
+                                if verbose == True:
+                                    if link_status == True: multi_step.write("\n--Link1--\n")
+                                    #multi_step.write("%chk=irc.chk\n")
+                                    multi_step.write("%mem=6GB\n")
+                                    multi_step.write("# b3lyp/6-31g(d) nosymm scf=qc test\n\n")
+                                    multi_step.write("SP {}\n\n".format(i))
+                                    i += 1
+                                    #multi_step.write("SP {}\n\n".format(point["Output"]["Point number"]))
+                                    multi_step.write("0 1\n")
+                                    link_status = True
+                                    #log.write("\n==============MATRIX FOR POINT {} AND PATH {}=============\n".format(point["Output"]["Point number"], point["Output"]["Path number"]))
+                                for matrix_element in point["Output"]["Matrix"]:
+                                    if verbose == True:
+                                        multi_step.write("   {}    {}\n".format(to_element(matrix_element.atomic_number),matrix_element.coordinates))
+                    multi_step.close()
                 if int(checkBox6_v.get()) == 1:
                     if steps != []:
                         if verbose == True:
