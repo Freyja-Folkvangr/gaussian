@@ -380,10 +380,32 @@ def go():
                                 print('Warning: Incomplete point! Line: {}'.format(n))
                                 break
                         j += 1
-                    #Getting the output matrix
-                    output_matrix = []
-                    j = -2
+
                     if tmp != 'skip':
+                        #Getting the input matrix
+                        input_matrix = []
+                        j = 0
+                        while "Input orientation:" not in linecache.getline(file, n + j):
+                            j -= 1
+                        j += 5
+                        while "--------" not in linecache.getline(file, n + j):
+                            x, *y = linecache.getline(file, n + j).split(" ")
+                            y2 = y
+                            y = []
+                            for item in y2:
+                                if item != '' and item != ' ':
+                                    y.append(item)
+                            coords = Coordinates(float(y[3]), float(y[4]), float(y[5]))
+                            electron = Electron(y[0], y[1], y[2], coords)
+                            input_matrix.append(electron)
+                            j += 1
+                        #print (input_matrix)
+                        for item in input_matrix:
+                            print(item)
+                        print("-------")
+                        #Getting the output matrix
+                        output_matrix = []
+                        j = -2
                         while "----" not in linecache.getline(file, n + j):
                             x, *y = linecache.getline(file, n + j).split(" ")
                             tmp = y
@@ -396,14 +418,14 @@ def go():
                             output_matrix.append(electron)
                             j -= 1
                         if path[0]["Last path"] == SP_path_number:
-                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            SP_points.append({"Input":{"Matrix":input_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
                         elif path[0]["Last path"] == None:
                             path[0]["Last path"] = int(SP_path_number)
-                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            SP_points.append({"Input":{"Matrix":input_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
                         elif path[0]["Last path"] != SP_path_number:
                             path.append(SP_points)
                             SP_points = []
-                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            SP_points.append({"Input":{"Matrix":input_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
                             path[0]["Last path"] = int(SP_path_number)
                     else:
                         tmp2 = None
@@ -489,21 +511,23 @@ def go():
                 multi_step = open("results.com", "w")
                 multi_step.close()
                 multi_step = open("results.com", "a")
+                tmp = -1
                 for path_number in path:
                     if isinstance(path_number, list):
                         for point in path_number:
+                            tmp += 1
                             if verbose == True:
-                                if link_status == True: multi_step.write("--Link1--\n")
-                                multi_step.write("%chk=irc.chk\n")
+                                if link_status == True: multi_step.write("\n--Link1--\n")
+                                #multi_step.write("%chk=irc.chk\n")
                                 multi_step.write("%mem=6GB\n")
                                 multi_step.write("# b3lyp/6-31g(d) nosymm scf=qc test\n\n")
-                                multi_step.write("SP {}\n\n".format(point["Output"]["Point number"]))
+                                multi_step.write("SP {}\n\n".format(tmp))
                                 multi_step.write("0 1\n")
                                 link_status = True
                                 #log.write("\n==============MATRIX FOR POINT {} AND PATH {}=============\n".format(point["Output"]["Point number"], point["Output"]["Path number"]))
-                            for matrix_element in point["Output"]["Matrix"]:
+                            for matrix_element in point["Input"]["Matrix"]:
                                 if verbose == True:
-                                    multi_step.write("   {}    {}\n".format(matrix_element.atomic_number,matrix_element.coordinates))
+                                    multi_step.write("   {}    {}\n".format(to_element(matrix_element.atomic_number),matrix_element.coordinates))
                 if int(checkBox9_v.get()) == 1:
                     path.append(SP_points)
                     SP_points = []
