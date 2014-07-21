@@ -395,14 +395,10 @@ def go():
                             for item in y2:
                                 if item != '' and item != ' ':
                                     y.append(item)
-                            coords = Coordinates(float(y[3]), float(y[4]), float(y[5]))
+                            coords = Coordinates(y[3].rstrip('\n'), y[4].rstrip('\n'), y[5].rstrip('\n'))
                             electron = Electron(y[0], y[1], y[2], coords)
                             input_matrix.append(electron)
                             j += 1
-                        #print (input_matrix)
-                        for item in input_matrix:
-                            print(item)
-                        print("-------")
                         #Getting the output matrix
                         output_matrix = []
                         j = -2
@@ -418,14 +414,14 @@ def go():
                             output_matrix.append(electron)
                             j -= 1
                         if path[0]["Last path"] == SP_path_number:
-                            SP_points.append({"Input":{"Matrix":input_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            SP_points.append({"Input":input_matrix, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
                         elif path[0]["Last path"] == None:
                             path[0]["Last path"] = int(SP_path_number)
-                            SP_points.append({"Input":{"Matrix":input_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            SP_points.append({"Input":input_matrix, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
                         elif path[0]["Last path"] != SP_path_number:
                             path.append(SP_points)
                             SP_points = []
-                            SP_points.append({"Input":{"Matrix":input_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            SP_points.append({"Input":input_matrix, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
                             path[0]["Last path"] = int(SP_path_number)
                     else:
                         tmp2 = None
@@ -507,29 +503,29 @@ def go():
                                                                int(checkBox7_v.get()) == 1 or
                                                                int(checkBox9_v.get()) == 1):
 
-                link_status = False
-                multi_step = open("results.com", "w")
-                multi_step.close()
-                multi_step = open("results.com", "a")
-                tmp = -1
-                for path_number in path:
-                    if isinstance(path_number, list):
-                        for point in path_number:
-                            tmp += 1
-                            if verbose == True:
-                                if link_status == True: multi_step.write("\n--Link1--\n")
-                                #multi_step.write("%chk=irc.chk\n")
-                                multi_step.write("%mem=6GB\n")
-                                multi_step.write("# b3lyp/6-31g(d) nosymm scf=qc test\n\n")
-                                multi_step.write("SP {}\n\n".format(tmp))
-                                multi_step.write("0 1\n")
-                                link_status = True
-                                #log.write("\n==============MATRIX FOR POINT {} AND PATH {}=============\n".format(point["Output"]["Point number"], point["Output"]["Path number"]))
-                            for matrix_element in point["Input"]["Matrix"]:
-                                if verbose == True:
-                                    multi_step.write("   {}    {}\n".format(to_element(matrix_element.atomic_number),matrix_element.coordinates))
                 if int(checkBox9_v.get()) == 1:
                     path.append(SP_points)
+                    link_status = False
+                    multi_step = open("results.com", "w")
+                    multi_step.close()
+                    multi_step = open("results.com", "a")
+                    tmp = -1
+                    for path_number in path:
+                        if isinstance(path_number, list):
+                            for point in path_number:
+                                tmp += 1
+                                if verbose == True:
+                                    if link_status == True: multi_step.write("\n--Link1--\n")
+                                    #multi_step.write("%chk=irc.chk\n")
+                                    multi_step.write("%mem=6GB\n")
+                                    multi_step.write("# b3lyp/6-31g(d) nosymm scf=qc test\n\n")
+                                    multi_step.write("SP {}\n\n".format(tmp))
+                                    multi_step.write("0 1\n")
+                                    link_status = True
+                                    #log.write("\n==============MATRIX FOR POINT {} AND PATH {}=============\n".format(point["Output"]["Point number"], point["Output"]["Path number"]))
+                                for matrix_element in point["Input"]:
+                                    if verbose == True:
+                                        multi_step.write("   {}    {}\n".format(to_element(matrix_element.atomic_number),matrix_element.coordinates))
                     SP_points = []
                     if verbose == True:
                         tmp=''
@@ -547,30 +543,6 @@ def go():
                         #log.write("{}\n\n\n\n".format(path[0]))
                         #log.write("points: {}\n\n\n\n".format(SP_points))
                         log.write("{}\n".format(path))
-                    link_status = False
-                    multi_step = open("results.com", "w")
-                    multi_step.close()
-                    multi_step = open("results.com", "a")
-                    i = 0
-                    for path_number in path:
-                        print("item no: {} type: {}".format(path.index(path_number), type(path_number)))
-                        if isinstance(path_number, list):
-                            for point in path_number:
-                                if verbose == True:
-                                    if link_status == True: multi_step.write("\n--Link1--\n")
-                                    #multi_step.write("%chk=irc.chk\n")
-                                    multi_step.write("%mem=6GB\n")
-                                    multi_step.write("# b3lyp/6-31g(d) nosymm scf=qc test\n\n")
-                                    multi_step.write("SP {}\n\n".format(i))
-                                    i += 1
-                                    #multi_step.write("SP {}\n\n".format(point["Output"]["Point number"]))
-                                    multi_step.write("0 1\n")
-                                    link_status = True
-                                    #log.write("\n==============MATRIX FOR POINT {} AND PATH {}=============\n".format(point["Output"]["Point number"], point["Output"]["Path number"]))
-                                for matrix_element in point["Output"]["Matrix"]:
-                                    if verbose == True:
-                                        multi_step.write("   {}    {}\n".format(to_element(matrix_element.atomic_number),matrix_element.coordinates))
-                    multi_step.close()
                 if int(checkBox6_v.get()) == 1:
                     if steps != []:
                         if verbose == True:
