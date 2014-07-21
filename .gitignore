@@ -52,3 +52,6 @@ docs/_build/
 # PyBuilder
 target/
 
+# Gauss sAWK output and result files
+results.txt
+results.com
