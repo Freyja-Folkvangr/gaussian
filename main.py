@@ -529,19 +529,16 @@ def go():
                     SP_points = []
                     if verbose == True:
                         tmp=''
+                        log.write("=======================DATA=======================\n")
+                        log.write("Type: ")
                         for item in path:
-                            log.write("tipo: {}\n".format(type(item)))
+                            log.write("{} ".format(type(item)))
                             if len(tmp) > 0:
                                 tmp += ("-{}".format(len(item)))
                             else:
                                 tmp += ("{}".format(len(item)))
-                            if len(tmp) > 0:
-                                tmp += ("-{}".format(len(item)-1))
-                            else:
-                                tmp += ("{}".format(len(item)-1))
-                        log.write("-Data inside path: {}\n\n".format(tmp))
-                        #log.write("{}\n\n\n\n".format(path[0]))
-                        #log.write("points: {}\n\n\n\n".format(SP_points))
+                        log.write("\nArgs: {}\n\n".format(tmp))
+                        log.write("==================================================\n")
                         log.write("{}\n".format(path))
                 if int(checkBox6_v.get()) == 1:
                     if steps != []:
@@ -761,6 +758,10 @@ def main():
     checkBox1_v = IntVar()
     checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
 
+    global checkBox10_v
+    checkBox10_v = IntVar()
+    checkBox10 = Checkbutton(tab2, text="Generate Multi-step", state=DISABLED, variable=checkBox10_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=1, columnspan=1)
+
     global checkBox2_v
     checkBox2_v = IntVar()
     checkBox2 = Checkbutton(tab2, text="HOMO and LUMO", variable=checkBox2_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=1, column=0, columnspan=1)
@@ -787,11 +788,11 @@ def main():
 
     global checkBox8_v
     checkBox8_v = IntVar()
-    checkBox8 = Checkbutton(tab2, text="Dual", variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
+    checkBox8 = Checkbutton(tab2, text="Dual", state=DISABLED, variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
 
     global checkBox9_v
     checkBox9_v = IntVar()
-    checkBox9 = Checkbutton(tab2, text="SP", variable=checkBox9_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=1, columnspan=1)
+    checkBox9 = Checkbutton(tab2, text="SP: IRC Input Orientation", variable=checkBox9_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=1, columnspan=1)
 
 
     tab3 = Tab(root, "Info")
