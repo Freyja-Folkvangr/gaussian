@@ -132,13 +132,17 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
     if verbose == True: print("Itineration {}:".format(itineration))
     if verbose == True:
         log.write("\nAO:\n")
-        log.write(str(aocc))
+        if aocc == []: log.write("None")
+        else: log.write(str(aocc))
         log.write("\n\nAV:\n")
-        log.write(str(avirt))
+        if avirt == []: log.write("None")
+        else: log.write(str(avirt))
         log.write("\n\nBO:\n")
-        log.write(str(bocc))
+        if bocc == []: log.write("None")
+        else: log.write(str(bocc))
         log.write("\n\nBV:\n")
-        log.write(str(bvirt))
+        if bvirt == []: log.write("None\n\n")
+        else: log.write(str(bvirt))
         if bocc != []: log.write("\n\n    |Alpha results\n____|________________\n")
         log.write("HOMO|  {}\n".format(aocc[len(aocc) - 1]))
         log.write("LUMO|  {}\n____|________________\n".format(avirt[0]))
@@ -184,6 +188,7 @@ def go():
         Matrix_number = 0
         internal_angles = []
         zMatrix = []
+        conflicted_lines=[]
         ubhflyp=[int(0)]
         if checkfile(file) == False:
             print("File Not Found\n=======================ABORTED======================")
@@ -204,17 +209,29 @@ def go():
             if int(checkBox2_v.get()) == 1:
                 #homo, lumo, orbitals, etc
                 if "Alpha  occ. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
+                    x, *y = line.split('--')
                     args = y[0].split('  ')
                     for item in args:
                         if item != '':
                             try: aocc.append(float(item))
                             except (ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment:\n{}\n".format(item))
-                                    a, *b = item.split(' ')
-                                    aocc.append(float(a))
-                                    aocc.append(float(b[0]))
+                                try:
+                                    if verbose == True:
+                                        log.write("\nWarning: There was an expected format-related-problem with data treatment:\n{}\n".format(item))
+                                        a, *b = item.split(' ')
+                                        aocc.append(float(a))
+                                        aocc.append(float(b[0]))
+                                except(ValueError):
+                                    if verbose == True:
+                                        log.write("========================ERROR=======================\n")
+                                        log.write("Unexpected error processing data for HOMO and LUMO. We tried to split by ' '\nConflict in line: {} which is:\n{}\n".format(n,line))
+                                        conflicted_lines.append(n)
+                                        log.write("====================================================\n")
+                                    else:
+                                        print("========================ERROR=======================")
+                                        print("Unexpected error processing data for HOMO and LUMO.\nYou should turn on Verbose mode to see details in the log file.")
+                                        print("====================================================")
+                                    break
                             except:
                                 print ("Unknown Error!")
                                 print (type(err))
@@ -607,8 +624,23 @@ def go():
                     else:
                         pass
 
-            if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
-            if Energy[2] == 1: print("-Many HF found, see details in log file")
+            #if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
+            #if Energy[2] == 1: print("-Many HF found, see details in log file")
+        if conflicted_lines != []:
+            print("========================ERROR=======================")
+            if verbose == True:
+                print("Errors found in these lines:\n{}\n\nSee the log file to see more details.".format(conflicted_lines))
+                log.write("Conflictive lines: {}\n".format(conflicted_lines))
+            else:
+                print("Errors found in these lines:\n{}\n\nTry turning on verbose mode to log the details.".format(conflicted_lines))
+        '''
+        with open("output.txt", "w", encoding="latin-1") as output:
+            #output.write("")
+            output.close()
+        with open("output.txt", "a", encoding="latin-1") as output:
+            output.write("{}\n".format(textBox2.get(1.0,END)))
+        print("All above has been saved in 'output.txt'")
+        '''
 
     try:
         with open(file, "r", encoding="latin-1") as f:
@@ -663,6 +695,17 @@ def dualm(index):
 
 
 def main():
+    # ======= TOGGLE EVENTS ========
+    def checkBox9_onClickEvent(event):
+        checkBox2_v.set(0)
+        checkBox3_v.set(0)
+        checkBox4_v.set(0)
+        checkBox5_v.set(0)
+        checkBox6_v.set(0)
+        checkBox7_v.set(0)
+        checkBox8_v.set(0)
+        checkBox2.set(state=DISABLED)
+
     def write(x): print (x)
     global file
     global textBox2
@@ -674,14 +717,14 @@ def main():
         if int(checkBox1_v.get()) == 1:
             verbose = True
             global log
-            log = open("results.txt", "w")
+            log = open("verbose.txt", "w")
             from datetime import datetime
             log.write("=============================Gauss09 sAWK=============================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
             log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
             log.close()
-            log = open("results.txt", "a")
+            log = open("verbose.txt", "a")
             print("NOTE: Logs are turned on")
-            print("NOTE 2: Saving Gauss09 sAWK logs in 'results.txt'")
+            print("NOTE 2: Saving Gauss09 sAWK logs in 'verbose.txt'")
             if int(checkBox9_v.get()) == 1: print("NOTE 3: Saving multi-step file as 'results.com'")
         else: verbose = False
         if int(checkBox8_v.get()) == 1 and (
@@ -719,7 +762,7 @@ def main():
         if verbose == True: log.close()
         dualStr = 'first'
         return True
-
+    # ======== MAIN WINDOW =========
     root = Tk()
     root.title("Gaussian 09 simple AWK (BETA 2)")
     root.resizable(0, 0)
@@ -737,7 +780,7 @@ def main():
     button1 = Button(tab1, text="Open...", command=lambda:load_file()).grid(pady=2, sticky=NW, row=0, column=41)
     button2 = Button(tab1, text="Execute", command=lambda: initialize()).grid(pady=0, sticky=NW, column=41, row=1)
 
-    #CONSOLE
+    # ========== CONSOLE ===========
     global textBox2
     textBox2_v = StringVar()
     textBox2 = Text(tab1, height=34, width=75, wrap='word', bd=1, relief=RIDGE, highlightthickness=0)
@@ -756,11 +799,12 @@ def main():
 
     global checkBox1_v
     checkBox1_v = IntVar()
-    checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
+    checkBox1_v.set(1)
+    checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0, state = DISABLED).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
 
     global checkBox10_v
     checkBox10_v = IntVar()
-    checkBox10 = Checkbutton(tab2, text="Generate Multi-step", state=DISABLED, variable=checkBox10_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=1, columnspan=1)
+    checkBox10 = Checkbutton(tab2, text="Generate Multi-step", variable=checkBox10_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=1, columnspan=1)
 
     global checkBox2_v
     checkBox2_v = IntVar()
@@ -811,5 +855,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 sys.stdout = old_stdout
