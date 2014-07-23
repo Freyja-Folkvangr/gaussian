@@ -14,6 +14,9 @@ import sys
 from classes import *
 from tab_constructor import *
 from tkinter import *
+from elements import *
+
+
 old_stdout = sys.stdout
 
 global t0
@@ -172,6 +175,16 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
 =======
 
 >>>>>>> SP-mode:main.py
+
+def to_element(atomic_number):
+    for element in ELEMENTS:
+        if int(element.number) == int(atomic_number):
+            return element.symbol
+        else: pass
+    return atomic_number
+
+def generate_multi_step(data, type='SP'):
+    pass
 
 def go():
     def process():
@@ -382,10 +395,28 @@ def go():
                                 print('Warning: Incomplete point! Line: {}'.format(n))
                                 break
                         j += 1
-                    #Getting the output matrix
-                    output_matrix = []
-                    j = -2
+
                     if tmp != 'skip':
+                        #Getting the input matrix
+                        input_matrix = []
+                        j = 0
+                        while "Input orientation:" not in linecache.getline(file, n + j):
+                            j -= 1
+                        j += 5
+                        while "--------" not in linecache.getline(file, n + j):
+                            x, *y = linecache.getline(file, n + j).split(" ")
+                            y2 = y
+                            y = []
+                            for item in y2:
+                                if item != '' and item != ' ':
+                                    y.append(item)
+                            coords = Coordinates(y[3].rstrip('\n'), y[4].rstrip('\n'), y[5].rstrip('\n'))
+                            electron = Electron(y[0], y[1], y[2], coords)
+                            input_matrix.append(electron)
+                            j += 1
+                        #Getting the output matrix
+                        output_matrix = []
+                        j = -2
                         while "----" not in linecache.getline(file, n + j):
                             x, *y = linecache.getline(file, n + j).split(" ")
                             tmp = y
@@ -398,14 +429,14 @@ def go():
                             output_matrix.append(electron)
                             j -= 1
                         if path[0]["Last path"] == SP_path_number:
-                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            SP_points.append({"Input":input_matrix, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
                         elif path[0]["Last path"] == None:
                             path[0]["Last path"] = int(SP_path_number)
-                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            SP_points.append({"Input":input_matrix, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
                         elif path[0]["Last path"] != SP_path_number:
                             path.append(SP_points)
                             SP_points = []
-                            SP_points.append({"Input":None, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
+                            SP_points.append({"Input":input_matrix, "Output":{"Matrix":output_matrix, "Point number":int(SP_point_number), "Path number":int(SP_path_number)}})
                             path[0]["Last path"] = int(SP_path_number)
                     else:
                         tmp2 = None
@@ -486,19 +517,43 @@ def go():
                                                                int(checkBox6_v.get()) == 1 or
                                                                int(checkBox7_v.get()) == 1 or
                                                                int(checkBox9_v.get()) == 1):
+
                 if int(checkBox9_v.get()) == 1:
                     path.append(SP_points)
+                    link_status = False
+                    multi_step = open("results.com", "w")
+                    multi_step.close()
+                    multi_step = open("results.com", "a")
+                    tmp = -1
+                    for path_number in path:
+                        if isinstance(path_number, list):
+                            for point in path_number:
+                                tmp += 1
+                                if verbose == True:
+                                    if link_status == True: multi_step.write("\n--Link1--\n")
+                                    #multi_step.write("%chk=irc.chk\n")
+                                    multi_step.write("%mem=6GB\n")
+                                    multi_step.write("# b3lyp/6-31g(d) nosymm scf=qc test\n\n")
+                                    multi_step.write("SP {}\n\n".format(tmp))
+                                    multi_step.write("0 1\n")
+                                    link_status = True
+                                    #log.write("\n==============MATRIX FOR POINT {} AND PATH {}=============\n".format(point["Output"]["Point number"], point["Output"]["Path number"]))
+                                for matrix_element in point["Input"]:
+                                    if verbose == True:
+                                        multi_step.write("   {}    {}\n".format(to_element(matrix_element.atomic_number),matrix_element.coordinates))
                     SP_points = []
                     if verbose == True:
                         tmp=''
+                        log.write("=======================DATA=======================\n")
+                        log.write("Type: ")
                         for item in path:
+                            log.write("{} ".format(type(item)))
                             if len(tmp) > 0:
-                                tmp += ("-{}".format(len(item)-1))
+                                tmp += ("-{}".format(len(item)))
                             else:
-                                tmp += ("{}".format(len(item)-1))
-                        log.write("-Data inside path: {}\n\n".format(tmp))
-                        #log.write("{}\n\n\n\n".format(path[0]))
-                        #log.write("points: {}\n\n\n\n".format(SP_points))
+                                tmp += ("{}".format(len(item)))
+                        log.write("\nArgs: {}\n\n".format(tmp))
+                        log.write("==================================================\n")
                         log.write("{}\n".format(path))
                 if int(checkBox6_v.get()) == 1:
                     if steps != []:
@@ -670,6 +725,7 @@ def main():
             log = open("results.txt", "a")
             print("NOTE: Logs are turned on")
             print("NOTE 2: Saving Gauss09 sAWK logs in 'results.txt'")
+            if int(checkBox9_v.get()) == 1: print("NOTE 3: Saving multi-step file as 'results.com'")
         else: verbose = False
         if int(checkBox8_v.get()) == 1 and (
             int(checkBox2_v.get()) == 1 or
@@ -745,6 +801,10 @@ def main():
     checkBox1_v = IntVar()
     checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
 
+    global checkBox10_v
+    checkBox10_v = IntVar()
+    checkBox10 = Checkbutton(tab2, text="Generate Multi-step", state=DISABLED, variable=checkBox10_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=1, columnspan=1)
+
     global checkBox2_v
     checkBox2_v = IntVar()
     checkBox2 = Checkbutton(tab2, text="HOMO and LUMO", variable=checkBox2_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=1, column=0, columnspan=1)
@@ -771,11 +831,11 @@ def main():
 
     global checkBox8_v
     checkBox8_v = IntVar()
-    checkBox8 = Checkbutton(tab2, text="Dual", variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
+    checkBox8 = Checkbutton(tab2, text="Dual", state=DISABLED, variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
 
     global checkBox9_v
     checkBox9_v = IntVar()
-    checkBox9 = Checkbutton(tab2, text="SP", variable=checkBox9_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=1, columnspan=1)
+    checkBox9 = Checkbutton(tab2, text="SP: IRC Input Orientation", variable=checkBox9_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=1, columnspan=1)
 
 
     tab3 = Tab(root, "Info")
