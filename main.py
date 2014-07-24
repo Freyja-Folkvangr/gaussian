@@ -149,20 +149,20 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         if bvirt == []: log.write("None\n\n")
         else: log.write(str(bvirt))
         if bocc != []:
-            orbitals.append({"Type":"ALPHA", "HOMO":float(aocc[len(aocc) - 1]), "LUMO":float(avirt[0]), "U":float(((avirt[0] + aocc[len(aocc) - 1]) * 0.5)), "HN":float(((avirt[0] - aocc[len(aocc) - 1]) * 0.5)), "Itineration":int(itineration)})
-            orbitals.append({"Type":"BETA", "HOMO":float(bocc[len(bocc) - 1]), "LUMO":float(bvirt[0]), "U":float(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5)), "HN":float(((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)), "Itineration":int(itineration)})
+            orbitals.append({"Type":"ALPHA", "HOMO":float(aocc[len(aocc) - 1]), "LUMO":float(avirt[0]), "U":float(((avirt[0] + aocc[len(aocc) - 1]) * 0.5)), "HN":float(((avirt[0] - aocc[len(aocc) - 1]))), "Itineration":int(itineration)})
+            orbitals.append({"Type":"BETA", "HOMO":float(bocc[len(bocc) - 1]), "LUMO":float(bvirt[0]), "U":float(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5)), "HN":float(((bvirt[0] - bocc[len(bocc) - 1]))), "Itineration":int(itineration)})
         else:
-            orbitals.append({"Type":"ALPHA", "HOMO":float(aocc[len(aocc) - 1]), "LUMO":float(avirt[0]), "U":float(((avirt[0] + aocc[len(aocc) - 1]) * 0.5)), "HN":float(((avirt[0] - aocc[len(aocc) - 1]) * 0.5)), "Itineration":int(itineration)})
+            orbitals.append({"Type":"ALPHA", "HOMO":float(aocc[len(aocc) - 1]), "LUMO":float(avirt[0]), "U":float(((avirt[0] + aocc[len(aocc) - 1]) * 0.5)), "HN":float(((avirt[0] - aocc[len(aocc) - 1]))), "Itineration":int(itineration)})
     if bocc != []: print ("    |Alpha results\n____|________________")
     print("HOMO|  {}".format(aocc[len(aocc) - 1]))
     print("LUMO|  {}\n____|________________".format(avirt[0]))
-    print("μ= {0}  &  Ηη= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
+    print("μ= {0}  &  Ηη= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]))))
     print()
     if bocc != []:
         print ("    |Beta results\n____|________________")
         print("HOMO|  {}".format(bocc[len(bocc) - 1]))
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
-        print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
+        print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]))))
 
 
 def to_element(atomic_number):
