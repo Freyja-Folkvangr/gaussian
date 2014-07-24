@@ -1,13 +1,16 @@
-'''
+__doc__ = info = '''
 Created on Mar 26, 2014
 @author: giuliano
 
 Tabbed interface script
 www.sunjay-varma.com
-'''
-__doc__ = info = '''
+
 See the changelog and download updates at:
 http://www.github.com/evergreen2/gaussian
+
+Please report any bug you may find in this program,
+verify your results and report any issue.
+That's much appreciated!
 '''
 
 import sys
@@ -124,14 +127,16 @@ def report_Standard_orientation(Standard_orientation, Matrix_number):
     for item in Standard_orientation:
         print(item)
         if verbose == True: log.write("{}\n".format(item))
-
 def report_orbitals(aocc, bocc, avirt, bvirt):
+    global orbitals
     global itineration
     itineration += 1
     print("======================HOMO-LUMO=====================")
-    if verbose == True: print("Itineration {}:".format(itineration))
     if verbose == True:
-        log.write("\nAO:\n")
+        log.write("\n======================HOMO-LUMO {}=====================\n".format(itineration))
+        print("Itineration {}:".format(itineration))
+    if verbose == True:
+        log.write("AO:\n")
         if aocc == []: log.write("None")
         else: log.write(str(aocc))
         log.write("\n\nAV:\n")
@@ -143,16 +148,11 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         log.write("\n\nBV:\n")
         if bvirt == []: log.write("None\n\n")
         else: log.write(str(bvirt))
-        if bocc != []: log.write("\n\n    |Alpha results\n____|________________\n")
-        log.write("HOMO|  {}\n".format(aocc[len(aocc) - 1]))
-        log.write("LUMO|  {}\n____|________________\n".format(avirt[0]))
-        log.write("u= {0} &  Hn= {1}\n".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
         if bocc != []:
-            log.write("\n    |Beta results\n____|________________\n")
-            log.write("HOMO|  {}\n".format(bocc[len(bocc) - 1]))
-            log.write("LUMO|  {}\n____|________________\n".format(bvirt[0]))
-            log.write("u= {0}  &  Hn= {1}\n".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
-        log.write("\n=============================EOI=============================\n")
+            orbitals.append({"Type":"ALPHA", "HOMO":float(aocc[len(aocc) - 1]), "LUMO":float(avirt[0]), "U":float(((avirt[0] + aocc[len(aocc) - 1]) * 0.5)), "HN":float(((avirt[0] - aocc[len(aocc) - 1]) * 0.5)), "Itineration":int(itineration)})
+            orbitals.append({"Type":"BETA", "HOMO":float(bocc[len(bocc) - 1]), "LUMO":float(bvirt[0]), "U":float(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5)), "HN":float(((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)), "Itineration":int(itineration)})
+        else:
+            orbitals.append({"Type":"ALPHA", "HOMO":float(aocc[len(aocc) - 1]), "LUMO":float(avirt[0]), "U":float(((avirt[0] + aocc[len(aocc) - 1]) * 0.5)), "HN":float(((avirt[0] - aocc[len(aocc) - 1]) * 0.5)), "Itineration":int(itineration)})
     if bocc != []: print ("    |Alpha results\n____|________________")
     print("HOMO|  {}".format(aocc[len(aocc) - 1]))
     print("LUMO|  {}\n____|________________".format(avirt[0]))
@@ -180,12 +180,14 @@ def go():
         global n
         global file
         global verbose
+        global orbitals
         global itineration
         path=[{"Maximum points per path":None,"Step size":None, "Last path":None}]
         itineration = 0
         n = 0
         Line_number = 0
         Matrix_number = 0
+        orbitals = []
         internal_angles = []
         zMatrix = []
         conflicted_lines=[]
@@ -210,81 +212,112 @@ def go():
                 #homo, lumo, orbitals, etc
                 if "Alpha  occ. eigenvalues" in line:
                     x, *y = line.split('--')
-                    args = y[0].split('  ')
+                    args = y[0].split(' ')
                     for item in args:
                         if item != '':
                             try: aocc.append(float(item))
                             except (ValueError) as err:
-                                try:
-                                    if verbose == True:
-                                        log.write("\nWarning: There was an expected format-related-problem with data treatment:\n{}\n".format(item))
-                                        a, *b = item.split(' ')
-                                        aocc.append(float(a))
-                                        aocc.append(float(b[0]))
-                                except(ValueError):
-                                    if verbose == True:
-                                        log.write("========================ERROR=======================\n")
-                                        log.write("Unexpected error processing data for HOMO and LUMO. We tried to split by ' '\nConflict in line: {} which is:\n{}\n".format(n,line))
-                                        conflicted_lines.append(n)
-                                        log.write("====================================================\n")
+                                i = 0
+                                tmp = ''
+                                while i < len(item):
+                                    if item[i] == '-':
+                                        try:
+                                            aocc.append(float(tmp))
+                                        except(ValueError): pass
+                                        tmp = ''
+                                        tmp += item[i]
                                     else:
-                                        print("========================ERROR=======================")
-                                        print("Unexpected error processing data for HOMO and LUMO.\nYou should turn on Verbose mode to see details in the log file.")
-                                        print("====================================================")
-                                    break
-                            except:
-                                print ("Unknown Error!")
-                                print (type(err))
-                                print (err)
+                                        try:
+                                            if int(item[i]) >= 0 or item[i] == '.':
+                                                tmp += item[i]
+                                        except(ValueError):
+                                            if item[i] == '.':
+                                                tmp += item[i]
+                                            else:
+                                                print("Unknown error! {}".format(line))
+                                    i += 1
+                                aocc.append(float(tmp))
                 elif "Alpha virt. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
+                    x, *y = line.split('--')
+                    args = y[0].split(' ')
                     for item in args:
                         if item != '':
                             try: avirt.append(float(item))
                             except (ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment: {}\n".format(item))
-                                    a, *b = item.split(' ')
-                                    aocc.append(float(a))
-                                    aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown Error!")
-                                print (type(err))
-                                print (err)
+                                i = 0
+                                tmp = ''
+                                while i < len(item):
+                                    if item[i] == '-':
+                                        try:
+                                            avirt.append(float(tmp))
+                                        except(ValueError): pass
+                                        tmp = ''
+                                        tmp += item[i]
+                                    else:
+                                        try:
+                                            if int(item[i]) >= 0 or item[i] == '.':
+                                                tmp += item[i]
+                                        except(ValueError):
+                                            if item[i] == '.':
+                                                tmp += item[i]
+                                            else:
+                                                print("Unknown error! {}".format(line))
+                                    i += 1
+                                avirt.append(float(tmp))
                 elif "Beta  occ. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
+                    x, *y = line.split('--')
+                    args = y[0].split(' ')
                     for item in args:
                         if item != '':
                             try: bocc.append(float(item))
                             except(ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: there was an expected error format-related-problem with data treatment:\n{}\n".format(item))
-                                    a, *b = item.split(' ')
-                                    aocc.append(float(a))
-                                    aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown error!")
-                                print (type(err))
-                                print (err)
+                                i = 0
+                                tmp = ''
+                                while i < len(item):
+                                    if item[i] == '-':
+                                        try:
+                                            bocc.append(float(tmp))
+                                        except(ValueError): pass
+                                        tmp = ''
+                                        tmp += item[i]
+                                    else:
+                                        try:
+                                            if int(item[i]) >= 0 or item[i] == '.':
+                                                tmp += item[i]
+                                        except(ValueError):
+                                            if item[i] == '.':
+                                                tmp += item[i]
+                                            else:
+                                                print("Unknown error! {}".format(line))
+                                    i += 1
+                                bocc.append(float(tmp))
                 elif "Beta virt. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
+                    x, *y = line.split('--')
+                    args = y[0].split(' ')
                     for item in args:
                         if item != '':
                             try: bvirt.append(float(item))
                             except (ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment:\n{}\n".format(item))
-                                    log.write("{1}\n{2}\nDone some automatic fixes..\n".format(type(err), err))
-                                a, *b = item.split(' ')
-                                aocc.append(float(a))
-                                aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown Error!")
-                                print (type(err))
-                                print (err)
+                                i = 0
+                                tmp = ''
+                                while i < len(item):
+                                    if item[i] == '-':
+                                        try:
+                                            bvirt.append(float(tmp))
+                                        except(ValueError): pass
+                                        tmp = ''
+                                        tmp += item[i]
+                                    else:
+                                        try:
+                                            if int(item[i]) >= 0 or item[i] == '.':
+                                                tmp += item[i]
+                                        except(ValueError):
+                                            if item[i] == '.':
+                                                tmp += item[i]
+                                            else:
+                                                print("Unknown error! {}".format(line))
+                                    i += 1
+                                bvirt.append(float(tmp))
             if int(checkBox3_v.get()) == 1:
                 if "Standard orientation" in line:
                     import linecache
@@ -626,6 +659,28 @@ def go():
 
             #if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
             #if Energy[2] == 1: print("-Many HF found, see details in log file")
+        if int(checkBox2_v.get()) == 1 and verbose == True:
+            log.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
+            log.write("Itineration   Type    HOMO       LUMO         u                      Hn\n")
+            for item in orbitals:
+                log.write("   {}".format(item["Itineration"]))
+                for i in range(0, 11 - len(str(item["Itineration"]))-1):
+                    log.write(" ")
+                log.write("{}".format(item["Type"]))
+                for i in range (0, 7 - len(item["Type"]) - 1):
+                    log.write(" ")
+                log.write("  {}".format(item["HOMO"]))
+                for i in range(0,9 - int(len(str(item["HOMO"]))) - 1):
+                    log.write(" ")
+                log.write("    {}".format(item["LUMO"]))
+                for i in range(0, 10 - len(str(item["LUMO"])) - 1):
+                    log.write(" ")
+                log.write("   {}".format(item["U"]))
+                for i in range(0, 23 - len(str(item["U"])) - 1):
+                    log.write(" ")
+                log.write("  {}\n".format(item["HN"]))
+
+                #log.write("   {}            {}         {}         {}         {}                {}\n".format(item["Itineration"], item["Type"], item["HOMO"], item["LUMO"], item["U"], item["HN"]))
         if conflicted_lines != []:
             print("========================ERROR=======================")
             if verbose == True:
@@ -764,7 +819,7 @@ def main():
         return True
     # ======== MAIN WINDOW =========
     root = Tk()
-    root.title("Gaussian 09 simple AWK (BETA 2)")
+    root.title("Gaussian 09 simple AWK (BETA 3)")
     root.resizable(0, 0)
 
     bar = TabBar(root, "Info")
@@ -840,7 +895,7 @@ def main():
 
 
     tab3 = Tab(root, "Info")
-    Label(tab3, bg='white', text="BETA version, report bugs in:\n"+info).pack(side=LEFT, expand=YES, fill=BOTH)
+    Label(tab3, bg='white', text="BETA version, report bugs in\nour GitHub page below.\n"+info).pack(side=LEFT, expand=YES, fill=BOTH)
 
     bar.add(tab1)                   # add the tabs to the tab bar
     bar.add(tab2)
