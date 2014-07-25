@@ -205,27 +205,13 @@ def go():
         points = []
         SP_points = []
         ub3lyp = [int(0)]
-        rb3lyp = []
+        rb3lyp = [int(0)]
+
         for line in f:
             Line_number += 1
             n += 1
             if int(checkBox2_v.get()) == 1:
                 #homo, lumo, orbitals, etc
-                if "E(RB3LYP)" in line:
-                    x, *y = line.split('=')
-                    x, *y = y[0].split(' ')
-                    x = y
-                    y = []
-                    for item in x:
-                        if item != '' and item != ' ':
-                            y.append(item)
-                    print(y)
-                    try:
-                        rb3lyp.append(float(y[0]))
-                    except() as err:
-                        print (err)
-                        if verbose == True:
-                            log.write("{}\n".format(err))
                 if "Alpha  occ. eigenvalues" in line:
                     x, *y = line.split('--')
                     args = y[0].split(' ')
@@ -541,7 +527,7 @@ def go():
                     print()
                 zMatrix = []
                 internal_angles = []
-            elif "SCF Done:" in line and ("E(UB+HF-LYP)" in line or "E(UB3LYP)" in line):
+            elif "SCF Done:" in line and ("E(UB+HF-LYP)" in line or "E(UB3LYP)" in line or "E(RB3LYP)"):
                 if "E(UB+HF-LYP)" in line:
                     x, *y = line.split("=")
                     x, *y = y[0].split(" ")
@@ -560,6 +546,31 @@ def go():
                     e=UB3LYP(ub3lyp[0] + 1, float(y[0]))
                     ub3lyp.append(e)
                     ub3lyp[0] += + 1
+                elif "E(RB3LYP)" in line:
+                    x, *y = line.split("=")
+                    x, *y = y[0].split(" ")
+                    for item in y:
+                        if item == "": y.remove(item)
+                    e=RB3LYP(rb3lyp[0] + 1, float(y[0]))
+                    rb3lyp.append(e)
+                    rb3lyp[0] += + 1
+                    '''
+                if "E(RB3LYP)" in line:
+                    x, *y = line.split('=')
+                    x, *y = y[0].split(' ')
+                    x = y
+                    y = []
+                    for item in x:
+                        if item != '' and item != ' ':
+                            y.append(item)
+                    print(y)
+                    try:
+                        rb3lyp.append(float(y[0]))
+                    except() as err:
+                        print (err)
+                        if verbose == True:
+                            log.write("{}\n".format(err))
+                '''
                 else: pass
 
             if "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
@@ -675,7 +686,20 @@ def go():
 
             #if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
             #if Energy[2] == 1: print("-Many HF found, see details in log file")
+
         if int(checkBox2_v.get()) == 1 and verbose == True:
+            
+            if rb3lyp != []:
+                log.write("\n=====================E(RB3LYP)=====================\n")
+                log.write("     Point                             Value\n")
+                print("\n=====================E(RB3LYP)=====================")
+                print("     Point                              Value")
+                for item in rb3lyp:
+                    if isinstance(item, RB3LYP):
+                        print("     {}".format(item))
+                        log.write("     {}\n".format(item))
+                    else: pass
+            
             log.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
             log.write("No  Type    HOMO        LUMO         u                      Hn                    E(RB3LYP)\n")
             i = 0
@@ -698,7 +722,9 @@ def go():
                 log.write("  {}".format(item["HN"]))
                 for i in range(0, 22 - len(str(item["HN"]))):
                     log.write(" ")
-                log.write("{}\n".format(rb3lyp[i]))
+                log.write("\n")
+
+                #log.write("{}\n".format(rb3lyp[i]))
                 i += 1
 
                 #log.write("   {}            {}         {}         {}         {}                {}\n".format(item["Itineration"], item["Type"], item["HOMO"], item["LUMO"], item["U"], item["HN"]))
