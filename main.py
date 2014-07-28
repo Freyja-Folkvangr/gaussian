@@ -725,10 +725,6 @@ def go():
                 log.write("{}\n".format(rb3lyp[item["Itineration"]].E))
                 i += 1
 
-            for item in rb3lyp:
-                print (item)
-
-                #log.write("   {}            {}         {}         {}         {}                {}\n".format(item["Itineration"], item["Type"], item["HOMO"], item["LUMO"], item["U"], item["HN"]))
         if conflicted_lines != []:
             print("========================ERROR=======================")
             if verbose == True:
