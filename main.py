@@ -700,44 +700,50 @@ def go():
                         log.write("     {}\n".format(item))
                     else: pass
 
+            log.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
             if int(checkBox11_v.get()) == 1:
-                log.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
                 log.write("No  Type    HOMO        LUMO         u                      Hn                    E(RB3LYP)\n")
             else:
                 log.write("//No;Type;HOMO;LUMO;u;HnM;E(RB3LYP)\n")
             i = 0
             for item in orbitals:
                 log.write("{}".format(item["Itineration"]))
+
                 if int(checkBox11_v.get()) == 1:
                     for i in range(0, 6 - len(str(item["Itineration"]))-1):
                         log.write(" ")
                 else:
                     log.write(";")
                 log.write("{}".format(item["Type"]))
+
                 if int(checkBox11_v.get()) == 1:
-                    for i in range (0, 6 - len(item["Type"]) - 1):
+                    for i in range (0, 8 - len(item["Type"]) - 1):
                         log.write(" ")
                 else:
                     log.write(";")
-                log.write("  {}".format(item["HOMO"]))
+                log.write("{}".format(item["HOMO"]))
+
                 if int(checkBox11_v.get()) == 1:
-                    for i in range(0, 9 - int(len(str(item["HOMO"]))) - 1):
+                    for i in range(0, 13 - int(len(str(item["HOMO"]))) - 1):
                         log.write(" ")
                 else:
                     log.write(";")
-                log.write("    {}".format(item["LUMO"]))
+                log.write("{}".format(item["LUMO"]))
+
                 if int(checkBox11_v.get()) == 1:
-                    for i in range(0, 10 - len(str(item["LUMO"])) - 1):
+                    for i in range(0, 13 - len(str(item["LUMO"])) - 1):
                         log.write(" ")
                 else:
                     log.write(";")
-                log.write("   {}".format(item["U"]))
+                log.write("{}".format(item["U"]))
+
                 if int(checkBox11_v.get()) == 1:
-                    for i in range(0, 23 - len(str(item["U"])) - 1):
+                    for i in range(0, 25 - len(str(item["U"])) - 1):
                         log.write(" ")
                 else:
                     log.write(";")
-                log.write("  {}".format(item["HN"]))
+                log.write("{}".format(item["HN"]))
+
                 if int(checkBox11_v.get()) == 1:
                     for i in range(0, 22 - len(str(item["HN"]))):
                         log.write(" ")
@@ -921,7 +927,7 @@ def main():
     checkBox1_v = IntVar()
     checkBox1_v.set(1)
     checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0, state = DISABLED).grid(padx=0, pady=0, sticky=NW, row=7, column=0, columnspan=1)
-    
+
     global checkBox11_v
     checkBox11_v = IntVar()
     checkBox11_v.set(1)
