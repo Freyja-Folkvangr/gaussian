@@ -91,14 +91,7 @@ def load_file():
     except (RuntimeError, IOError) as inst:
             print ("There was an error while oppening the file.\n {}".format(file))
             print(type(inst))
-<<<<<<< HEAD:main.py
-            print(inst) 
-=======
             print(inst)
-<<<<<<< HEAD:main.py
->>>>>>> SP-mode:main.py
-=======
->>>>>>> SP-mode:main.py
 
 def report_zMatrix(zMatrix, Matrix_number):
     if verbose == True:
@@ -169,20 +162,8 @@ def report_orbitals(aocc, bocc, avirt, bvirt):
         print ("    |Beta results\n____|________________")
         print("HOMO|  {}".format(bocc[len(bocc) - 1]))
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
-<<<<<<< HEAD
-        print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
-<<<<<<< HEAD:main.py
-<<<<<<< HEAD:main.py
-        
-=======
-=======
         print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]))))
->>>>>>> HOMO-LUMO
 
->>>>>>> SP-mode:main.py
-=======
-
->>>>>>> SP-mode:main.py
 
 def to_element(atomic_number):
     for element in ELEMENTS:
@@ -573,6 +554,23 @@ def go():
                     e=RB3LYP(rb3lyp[0] + 1, float(y[0]))
                     rb3lyp.append(e)
                     rb3lyp[0] += + 1
+                    '''
+                if "E(RB3LYP)" in line:
+                    x, *y = line.split('=')
+                    x, *y = y[0].split(' ')
+                    x = y
+                    y = []
+                    for item in x:
+                        if item != '' and item != ' ':
+                            y.append(item)
+                    print(y)
+                    try:
+                        rb3lyp.append(float(y[0]))
+                    except() as err:
+                        print (err)
+                        if verbose == True:
+                            log.write("{}\n".format(err))
+                '''
                 else: pass
 
             if "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
@@ -685,19 +683,7 @@ def go():
                         print("{}".format(ubhflyp[len(ubhflyp)-1]))
                     else:
                         pass
-<<<<<<< HEAD:main.py
-<<<<<<< HEAD:main.py
-                        
-=======
 
->>>>>>> SP-mode:main.py
-=======
-
-<<<<<<< HEAD
->>>>>>> SP-mode:main.py
-            if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
-            if Energy[2] == 1: print("-Many HF found, see details in log file")
-=======
             #if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
             #if Energy[2] == 1: print("-Many HF found, see details in log file")
 
@@ -754,7 +740,6 @@ def go():
             output.write("{}\n".format(textBox2.get(1.0,END)))
         print("All above has been saved in 'output.txt'")
         '''
->>>>>>> HOMO-LUMO
 
     try:
         with open(file, "r", encoding="latin-1") as f:
@@ -771,15 +756,7 @@ def go():
             log.write("{}\n\n".format(err.args))
             print("Error details saved into the log file.")
         print("=======================ABORTED======================")
-<<<<<<< HEAD:main.py
-<<<<<<< HEAD:main.py
-   
-=======
 
->>>>>>> SP-mode:main.py
-=======
-
->>>>>>> SP-mode:main.py
 def dualm(index):
     #verbose_anything = False
     if verbose == True:
@@ -813,21 +790,9 @@ def dualm(index):
         if verbose == True:
             log.write("\n\nTask completed with code {}\n\n".format(dual))
     except(FileNotFoundError):
-<<<<<<< HEAD:main.py
-<<<<<<< HEAD:main.py
-        print("File Not Found\n=======================ABORTED======================")   
-      
-      
-=======
         print("File Not Found\n=======================ABORTED======================")
 
 
->>>>>>> SP-mode:main.py
-=======
-        print("File Not Found\n=======================ABORTED======================")
-
-
->>>>>>> SP-mode:main.py
 def main():
     # ======= TOGGLE EVENTS ========
     def checkBox9_onClickEvent(event):
