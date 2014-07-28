@@ -55,5 +55,6 @@ target/
 # Gauss sAWK output and result files
 results.txt
 results.com
+verbose.txt
 
 .settings/org.eclipse.core.resources.prefs

@@ -25,8 +25,26 @@ class UB3LYP:
         self.E = E
         self.n = n
     def __str__(self):
+        return " {0.n}            {0.E}".format(self)
 
-            return " {0.n}            {0.E}".format(self)
+class UBHFLYP:
+    def __init__(self, n = 0, E = 0):
+        self.E = E
+        self.n = n
+    def __str__(self):
+        return " {0.n}            {0.E}".format(self)
+
+class RB3LYP:
+    def __init__(self, n = 0, E = 0):
+        self.E = E
+        self.n = n
+    def __str__(self):
+        tmp = ''
+        tmp += str(self.n)
+        for i in range(0, 30 - len(str(self.n))):
+            tmp += ' '
+        tmp += str(self.E)
+        return "{}".format(tmp)
 
 class Coordinates:
     def __init__(self, x, y, z):
@@ -50,10 +68,3 @@ class Angle:
         self.angle = angle
     def __str__(self):
         return "{0.combinations}            {0.angle}".format(self)
-
-class UBHFLYP:
-    def __init__(self, n = 0, E = 0):
-        self.E = E
-        self.n = n
-    def __str__(self):
-        return " {0.n}            {0.E}".format(self)

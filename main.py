@@ -1,13 +1,16 @@
-'''
+__doc__ = info = '''
 Created on Mar 26, 2014
 @author: giuliano
 
 Tabbed interface script
 www.sunjay-varma.com
-'''
-__doc__ = info = '''
+
 See the changelog and download updates at:
 http://www.github.com/evergreen2/gaussian
+
+Please report any bug you may find in this program,
+verify your results and report any issue.
+That's much appreciated!
 '''
 
 import sys
@@ -131,45 +134,50 @@ def report_Standard_orientation(Standard_orientation, Matrix_number):
     for item in Standard_orientation:
         print(item)
         if verbose == True: log.write("{}\n".format(item))
-
 def report_orbitals(aocc, bocc, avirt, bvirt):
+    global orbitals
     global itineration
     itineration += 1
     print("======================HOMO-LUMO=====================")
-    if verbose == True: print("Itineration {}:".format(itineration))
     if verbose == True:
-        log.write("\nAO:\n")
-        log.write(str(aocc))
+        log.write("\n======================HOMO-LUMO {}=====================\n".format(itineration))
+        print("Itineration {}:".format(itineration))
+    if verbose == True:
+        log.write("AO:\n")
+        if aocc == []: log.write("None")
+        else: log.write(str(aocc))
         log.write("\n\nAV:\n")
-        log.write(str(avirt))
+        if avirt == []: log.write("None")
+        else: log.write(str(avirt))
         log.write("\n\nBO:\n")
-        log.write(str(bocc))
+        if bocc == []: log.write("None")
+        else: log.write(str(bocc))
         log.write("\n\nBV:\n")
-        log.write(str(bvirt))
-        if bocc != []: log.write("\n\n    |Alpha results\n____|________________\n")
-        log.write("HOMO|  {}\n".format(aocc[len(aocc) - 1]))
-        log.write("LUMO|  {}\n____|________________\n".format(avirt[0]))
-        log.write("u= {0} &  Hn= {1}\n".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
+        if bvirt == []: log.write("None\n\n")
+        else: log.write(str(bvirt))
         if bocc != []:
-            log.write("\n    |Beta results\n____|________________\n")
-            log.write("HOMO|  {}\n".format(bocc[len(bocc) - 1]))
-            log.write("LUMO|  {}\n____|________________\n".format(bvirt[0]))
-            log.write("u= {0}  &  Hn= {1}\n".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
-        log.write("\n=============================EOI=============================\n")
+            orbitals.append({"Type":"ALPHA", "HOMO":float(aocc[len(aocc) - 1]), "LUMO":float(avirt[0]), "U":float(((avirt[0] + aocc[len(aocc) - 1]) * 0.5)), "HN":float(((avirt[0] - aocc[len(aocc) - 1]))), "Itineration":int(itineration)})
+            orbitals.append({"Type":"BETA", "HOMO":float(bocc[len(bocc) - 1]), "LUMO":float(bvirt[0]), "U":float(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5)), "HN":float(((bvirt[0] - bocc[len(bocc) - 1]))), "Itineration":int(itineration)})
+        else:
+            orbitals.append({"Type":"ALPHA", "HOMO":float(aocc[len(aocc) - 1]), "LUMO":float(avirt[0]), "U":float(((avirt[0] + aocc[len(aocc) - 1]) * 0.5)), "HN":float(((avirt[0] - aocc[len(aocc) - 1]))), "Itineration":int(itineration)})
     if bocc != []: print ("    |Alpha results\n____|________________")
     print("HOMO|  {}".format(aocc[len(aocc) - 1]))
     print("LUMO|  {}\n____|________________".format(avirt[0]))
-    print("μ= {0}  &  Ηη= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]) * 0.5)))
+    print("μ= {0}  &  Ηη= {1}".format(((avirt[0] + aocc[len(aocc) - 1]) * 0.5), ((avirt[0] - aocc[len(aocc) - 1]))))
     print()
     if bocc != []:
         print ("    |Beta results\n____|________________")
         print("HOMO|  {}".format(bocc[len(bocc) - 1]))
         print("LUMO|  {}\n____|________________".format(bvirt[0]))
+<<<<<<< HEAD
         print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]) * 0.5)))
 <<<<<<< HEAD:main.py
 <<<<<<< HEAD:main.py
         
 =======
+=======
+        print("μ= {0}  &  Ηη= {1}".format(((bvirt[0] + bocc[len(bocc) - 1]) * 0.5), ((bvirt[0] - bocc[len(bocc) - 1]))))
+>>>>>>> HOMO-LUMO
 
 >>>>>>> SP-mode:main.py
 =======
@@ -191,14 +199,17 @@ def go():
         global n
         global file
         global verbose
+        global orbitals
         global itineration
         path=[{"Maximum points per path":None,"Step size":None, "Last path":None}]
         itineration = 0
         n = 0
         Line_number = 0
         Matrix_number = 0
+        orbitals = []
         internal_angles = []
         zMatrix = []
+        conflicted_lines=[]
         ubhflyp=[int(0)]
         if checkfile(file) == False:
             print("File Not Found\n=======================ABORTED======================")
@@ -213,76 +224,121 @@ def go():
         points = []
         SP_points = []
         ub3lyp = [int(0)]
+        rb3lyp = [int(0)]
+
         for line in f:
             Line_number += 1
             n += 1
             if int(checkBox2_v.get()) == 1:
                 #homo, lumo, orbitals, etc
                 if "Alpha  occ. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
+                    x, *y = line.split('--')
+                    args = y[0].split(' ')
                     for item in args:
                         if item != '':
                             try: aocc.append(float(item))
                             except (ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment:\n{}\n".format(item))
-                                    a, *b = item.split(' ')
-                                    aocc.append(float(a))
-                                    aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown Error!")
-                                print (type(err))
-                                print (err)
+                                i = 0
+                                tmp = ''
+                                while i < len(item):
+                                    if item[i] == '-':
+                                        try:
+                                            aocc.append(float(tmp))
+                                        except(ValueError): pass
+                                        tmp = ''
+                                        tmp += item[i]
+                                    else:
+                                        try:
+                                            if int(item[i]) >= 0 or item[i] == '.':
+                                                tmp += item[i]
+                                        except(ValueError):
+                                            if item[i] == '.':
+                                                tmp += item[i]
+                                            else:
+                                                print("Unknown error! {}".format(line))
+                                    i += 1
+                                aocc.append(float(tmp))
                 elif "Alpha virt. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
+                    x, *y = line.split('--')
+                    args = y[0].split(' ')
                     for item in args:
                         if item != '':
                             try: avirt.append(float(item))
                             except (ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment: {}\n".format(item))
-                                    a, *b = item.split(' ')
-                                    aocc.append(float(a))
-                                    aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown Error!")
-                                print (type(err))
-                                print (err)
+                                i = 0
+                                tmp = ''
+                                while i < len(item):
+                                    if item[i] == '-':
+                                        try:
+                                            avirt.append(float(tmp))
+                                        except(ValueError): pass
+                                        tmp = ''
+                                        tmp += item[i]
+                                    else:
+                                        try:
+                                            if int(item[i]) >= 0 or item[i] == '.':
+                                                tmp += item[i]
+                                        except(ValueError):
+                                            if item[i] == '.':
+                                                tmp += item[i]
+                                            else:
+                                                print("Unknown error! {}".format(line))
+                                    i += 1
+                                avirt.append(float(tmp))
                 elif "Beta  occ. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
+                    x, *y = line.split('--')
+                    args = y[0].split(' ')
                     for item in args:
                         if item != '':
                             try: bocc.append(float(item))
                             except(ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: there was an expected error format-related-problem with data treatment:\n{}\n".format(item))
-                                    a, *b = item.split(' ')
-                                    aocc.append(float(a))
-                                    aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown error!")
-                                print (type(err))
-                                print (err)
+                                i = 0
+                                tmp = ''
+                                while i < len(item):
+                                    if item[i] == '-':
+                                        try:
+                                            bocc.append(float(tmp))
+                                        except(ValueError): pass
+                                        tmp = ''
+                                        tmp += item[i]
+                                    else:
+                                        try:
+                                            if int(item[i]) >= 0 or item[i] == '.':
+                                                tmp += item[i]
+                                        except(ValueError):
+                                            if item[i] == '.':
+                                                tmp += item[i]
+                                            else:
+                                                print("Unknown error! {}".format(line))
+                                    i += 1
+                                bocc.append(float(tmp))
                 elif "Beta virt. eigenvalues" in line:
-                    x, *y = line.split(' --  ')
-                    args = y[0].split('  ')
+                    x, *y = line.split('--')
+                    args = y[0].split(' ')
                     for item in args:
                         if item != '':
                             try: bvirt.append(float(item))
                             except (ValueError) as err:
-                                if verbose == True:
-                                    log.write("\nWarning: There was an expected format-related-problem with data treatment:\n{}\n".format(item))
-                                    log.write("{1}\n{2}\nDone some automatic fixes..\n".format(type(err), err))
-                                a, *b = item.split(' ')
-                                aocc.append(float(a))
-                                aocc.append(float(b[0]))
-                            except:
-                                print ("Unknown Error!")
-                                print (type(err))
-                                print (err)
+                                i = 0
+                                tmp = ''
+                                while i < len(item):
+                                    if item[i] == '-':
+                                        try:
+                                            bvirt.append(float(tmp))
+                                        except(ValueError): pass
+                                        tmp = ''
+                                        tmp += item[i]
+                                    else:
+                                        try:
+                                            if int(item[i]) >= 0 or item[i] == '.':
+                                                tmp += item[i]
+                                        except(ValueError):
+                                            if item[i] == '.':
+                                                tmp += item[i]
+                                            else:
+                                                print("Unknown error! {}".format(line))
+                                    i += 1
+                                bvirt.append(float(tmp))
             if int(checkBox3_v.get()) == 1:
                 if "Standard orientation" in line:
                     import linecache
@@ -490,7 +546,7 @@ def go():
                     print()
                 zMatrix = []
                 internal_angles = []
-            elif "SCF Done:" in line and ("E(UB+HF-LYP)" in line or "E(UB3LYP)" in line):
+            elif "SCF Done:" in line and ("E(UB+HF-LYP)" in line or "E(UB3LYP)" in line or "E(RB3LYP)"):
                 if "E(UB+HF-LYP)" in line:
                     x, *y = line.split("=")
                     x, *y = y[0].split(" ")
@@ -509,6 +565,31 @@ def go():
                     e=UB3LYP(ub3lyp[0] + 1, float(y[0]))
                     ub3lyp.append(e)
                     ub3lyp[0] += + 1
+                elif "E(RB3LYP)" in line:
+                    x, *y = line.split("=")
+                    x, *y = y[0].split(" ")
+                    for item in y:
+                        if item == "": y.remove(item)
+                    e=RB3LYP(rb3lyp[0] + 1, float(y[0]))
+                    rb3lyp.append(e)
+                    rb3lyp[0] += + 1
+                    '''
+                if "E(RB3LYP)" in line:
+                    x, *y = line.split('=')
+                    x, *y = y[0].split(' ')
+                    x = y
+                    y = []
+                    for item in x:
+                        if item != '' and item != ' ':
+                            y.append(item)
+                    print(y)
+                    try:
+                        rb3lyp.append(float(y[0]))
+                    except() as err:
+                        print (err)
+                        if verbose == True:
+                            log.write("{}\n".format(err))
+                '''
                 else: pass
 
             if "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
@@ -629,9 +710,68 @@ def go():
 >>>>>>> SP-mode:main.py
 =======
 
+<<<<<<< HEAD
 >>>>>>> SP-mode:main.py
             if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
             if Energy[2] == 1: print("-Many HF found, see details in log file")
+=======
+            #if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
+            #if Energy[2] == 1: print("-Many HF found, see details in log file")
+
+        if int(checkBox2_v.get()) == 1 and verbose == True:
+
+            if rb3lyp != []:
+                log.write("\n=====================E(RB3LYP)=====================\n")
+                log.write("     Point                             Value\n")
+                print("\n=====================E(RB3LYP)=====================")
+                print("     Point                              Value")
+                for item in rb3lyp:
+                    if isinstance(item, RB3LYP):
+                        print("     {}".format(item))
+                        log.write("     {}\n".format(item))
+                    else: pass
+
+            log.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
+            log.write("No  Type    HOMO        LUMO         u                      Hn                    E(RB3LYP)\n")
+            i = 0
+            for item in orbitals:
+                log.write("{}".format(item["Itineration"]))
+                for i in range(0, 6 - len(str(item["Itineration"]))-1):
+                    log.write(" ")
+                log.write("{}".format(item["Type"]))
+                for i in range (0, 6 - len(item["Type"]) - 1):
+                    log.write(" ")
+                log.write("  {}".format(item["HOMO"]))
+                for i in range(0, 9 - int(len(str(item["HOMO"]))) - 1):
+                    log.write(" ")
+                log.write("    {}".format(item["LUMO"]))
+                for i in range(0, 10 - len(str(item["LUMO"])) - 1):
+                    log.write(" ")
+                log.write("   {}".format(item["U"]))
+                for i in range(0, 23 - len(str(item["U"])) - 1):
+                    log.write(" ")
+                log.write("  {}".format(item["HN"]))
+                for i in range(0, 22 - len(str(item["HN"]))):
+                    log.write(" ")
+                log.write("{}\n".format(rb3lyp[item["Itineration"]].E))
+                i += 1
+
+        if conflicted_lines != []:
+            print("========================ERROR=======================")
+            if verbose == True:
+                print("Errors found in these lines:\n{}\n\nSee the log file to see more details.".format(conflicted_lines))
+                log.write("Conflictive lines: {}\n".format(conflicted_lines))
+            else:
+                print("Errors found in these lines:\n{}\n\nTry turning on verbose mode to log the details.".format(conflicted_lines))
+        '''
+        with open("output.txt", "w", encoding="latin-1") as output:
+            #output.write("")
+            output.close()
+        with open("output.txt", "a", encoding="latin-1") as output:
+            output.write("{}\n".format(textBox2.get(1.0,END)))
+        print("All above has been saved in 'output.txt'")
+        '''
+>>>>>>> HOMO-LUMO
 
     try:
         with open(file, "r", encoding="latin-1") as f:
@@ -706,6 +846,17 @@ def dualm(index):
 
 >>>>>>> SP-mode:main.py
 def main():
+    # ======= TOGGLE EVENTS ========
+    def checkBox9_onClickEvent(event):
+        checkBox2_v.set(0)
+        checkBox3_v.set(0)
+        checkBox4_v.set(0)
+        checkBox5_v.set(0)
+        checkBox6_v.set(0)
+        checkBox7_v.set(0)
+        checkBox8_v.set(0)
+        checkBox2.set(state=DISABLED)
+
     def write(x): print (x)
     global file
     global textBox2
@@ -717,14 +868,14 @@ def main():
         if int(checkBox1_v.get()) == 1:
             verbose = True
             global log
-            log = open("results.txt", "w")
+            log = open("verbose.txt", "w")
             from datetime import datetime
             log.write("=============================Gauss09 sAWK=============================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
             log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
             log.close()
-            log = open("results.txt", "a")
+            log = open("verbose.txt", "a")
             print("NOTE: Logs are turned on")
-            print("NOTE 2: Saving Gauss09 sAWK logs in 'results.txt'")
+            print("NOTE 2: Saving Gauss09 sAWK logs in 'verbose.txt'")
             if int(checkBox9_v.get()) == 1: print("NOTE 3: Saving multi-step file as 'results.com'")
         else: verbose = False
         if int(checkBox8_v.get()) == 1 and (
@@ -762,9 +913,9 @@ def main():
         if verbose == True: log.close()
         dualStr = 'first'
         return True
-
+    # ======== MAIN WINDOW =========
     root = Tk()
-    root.title("Gaussian 09 simple AWK (BETA 2)")
+    root.title("Gaussian 09 simple AWK (BETA 3)")
     root.resizable(0, 0)
 
     bar = TabBar(root, "Info")
@@ -780,7 +931,7 @@ def main():
     button1 = Button(tab1, text="Open...", command=lambda:load_file()).grid(pady=2, sticky=NW, row=0, column=41)
     button2 = Button(tab1, text="Execute", command=lambda: initialize()).grid(pady=0, sticky=NW, column=41, row=1)
 
-    #CONSOLE
+    # ========== CONSOLE ===========
     global textBox2
     textBox2_v = StringVar()
     textBox2 = Text(tab1, height=34, width=75, wrap='word', bd=1, relief=RIDGE, highlightthickness=0)
@@ -799,11 +950,12 @@ def main():
 
     global checkBox1_v
     checkBox1_v = IntVar()
-    checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
+    checkBox1_v.set(1)
+    checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0, state = DISABLED).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
 
     global checkBox10_v
     checkBox10_v = IntVar()
-    checkBox10 = Checkbutton(tab2, text="Generate Multi-step", state=DISABLED, variable=checkBox10_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=1, columnspan=1)
+    checkBox10 = Checkbutton(tab2, text="Generate Multi-step", variable=checkBox10_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=1, columnspan=1)
 
     global checkBox2_v
     checkBox2_v = IntVar()
@@ -839,7 +991,7 @@ def main():
 
 
     tab3 = Tab(root, "Info")
-    Label(tab3, bg='white', text="BETA version, report bugs in:\n"+info).pack(side=LEFT, expand=YES, fill=BOTH)
+    Label(tab3, bg='white', text="BETA version, report bugs in\nour GitHub page below.\n"+info).pack(side=LEFT, expand=YES, fill=BOTH)
 
     bar.add(tab1)                   # add the tabs to the tab bar
     bar.add(tab2)
@@ -854,5 +1006,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 sys.stdout = old_stdout
