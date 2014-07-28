@@ -688,7 +688,7 @@ def go():
             #if Energy[2] == 1: print("-Many HF found, see details in log file")
 
         if int(checkBox2_v.get()) == 1 and verbose == True:
-            
+
             if rb3lyp != []:
                 log.write("\n=====================E(RB3LYP)=====================\n")
                 log.write("     Point                             Value\n")
@@ -699,13 +699,13 @@ def go():
                         print("     {}".format(item))
                         log.write("     {}\n".format(item))
                     else: pass
-            
+
             log.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
             log.write("No  Type    HOMO        LUMO         u                      Hn                    E(RB3LYP)\n")
             i = 0
             for item in orbitals:
                 log.write("{}".format(item["Itineration"]))
-                for i in range(0, 5 - len(str(item["Itineration"]))-1):
+                for i in range(0, 6 - len(str(item["Itineration"]))-1):
                     log.write(" ")
                 log.write("{}".format(item["Type"]))
                 for i in range (0, 6 - len(item["Type"]) - 1):
@@ -722,10 +722,11 @@ def go():
                 log.write("  {}".format(item["HN"]))
                 for i in range(0, 22 - len(str(item["HN"]))):
                     log.write(" ")
-                log.write("\n")
-
-                #log.write("{}\n".format(rb3lyp[i]))
+                log.write("{}\n".format(rb3lyp[item["Itineration"]].E))
                 i += 1
+
+            for item in rb3lyp:
+                print (item)
 
                 #log.write("   {}            {}         {}         {}         {}                {}\n".format(item["Itineration"], item["Type"], item["HOMO"], item["LUMO"], item["U"], item["HN"]))
         if conflicted_lines != []:
