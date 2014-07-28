@@ -573,23 +573,6 @@ def go():
                     e=RB3LYP(rb3lyp[0] + 1, float(y[0]))
                     rb3lyp.append(e)
                     rb3lyp[0] += + 1
-                    '''
-                if "E(RB3LYP)" in line:
-                    x, *y = line.split('=')
-                    x, *y = y[0].split(' ')
-                    x = y
-                    y = []
-                    for item in x:
-                        if item != '' and item != ' ':
-                            y.append(item)
-                    print(y)
-                    try:
-                        rb3lyp.append(float(y[0]))
-                    except() as err:
-                        print (err)
-                        if verbose == True:
-                            log.write("{}\n".format(err))
-                '''
                 else: pass
 
             if "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
