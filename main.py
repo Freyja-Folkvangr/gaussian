@@ -759,14 +759,6 @@ def go():
                 log.write("Conflictive lines: {}\n".format(conflicted_lines))
             else:
                 print("Errors found in these lines:\n{}\n\nTry turning on verbose mode to log the details.".format(conflicted_lines))
-        '''
-        with open("output.txt", "w", encoding="latin-1") as output:
-            #output.write("")
-            output.close()
-        with open("output.txt", "a", encoding="latin-1") as output:
-            output.write("{}\n".format(textBox2.get(1.0,END)))
-        print("All above has been saved in 'output.txt'")
-        '''
 
     try:
         with open(file, "r", encoding="latin-1") as f:
@@ -905,6 +897,10 @@ def main():
 
     button1 = Button(tab1, text="Open...", command=lambda:load_file()).grid(pady=2, sticky=NW, row=0, column=41)
     button2 = Button(tab1, text="Execute", command=lambda: initialize()).grid(pady=0, sticky=NW, column=41, row=1)
+
+    #button3.config(image=button3Image)
+    #button3.image = button3Image
+    #button3.configure(image=button3Image)
 
     # ========== CONSOLE ===========
     global textBox2
