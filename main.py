@@ -704,7 +704,7 @@ def go():
             if int(checkBox11_v.get()) == 1:
                 log.write("No  Type    HOMO        LUMO         u                      Hn                    E(RB3LYP)\n")
             else:
-                log.write("//No;Type;HOMO;LUMO;u;HnM;E(RB3LYP)\n")
+                log.write("//No,Type,HOMO,LUMO,u,Hn,E(RB3LYP);\n")
             i = 0
             for item in orbitals:
                 log.write("{}".format(item["Itineration"]))
@@ -713,43 +713,44 @@ def go():
                     for i in range(0, 6 - len(str(item["Itineration"]))-1):
                         log.write(" ")
                 else:
-                    log.write(";")
+                    log.write(",")
                 log.write("{}".format(item["Type"]))
 
                 if int(checkBox11_v.get()) == 1:
                     for i in range (0, 8 - len(item["Type"]) - 1):
                         log.write(" ")
                 else:
-                    log.write(";")
+                    log.write(",")
                 log.write("{}".format(item["HOMO"]))
 
                 if int(checkBox11_v.get()) == 1:
                     for i in range(0, 13 - int(len(str(item["HOMO"]))) - 1):
                         log.write(" ")
                 else:
-                    log.write(";")
+                    log.write(",")
                 log.write("{}".format(item["LUMO"]))
 
                 if int(checkBox11_v.get()) == 1:
                     for i in range(0, 13 - len(str(item["LUMO"])) - 1):
                         log.write(" ")
                 else:
-                    log.write(";")
+                    log.write(",")
                 log.write("{}".format(item["U"]))
 
                 if int(checkBox11_v.get()) == 1:
                     for i in range(0, 25 - len(str(item["U"])) - 1):
                         log.write(" ")
                 else:
-                    log.write(";")
+                    log.write(",")
                 log.write("{}".format(item["HN"]))
 
                 if int(checkBox11_v.get()) == 1:
                     for i in range(0, 22 - len(str(item["HN"]))):
                         log.write(" ")
+                    log.write("{}\n".format(rb3lyp[item["Itineration"]].E))
                 else:
-                    log.write(";")
-                log.write("{}\n".format(rb3lyp[item["Itineration"]].E))
+                    log.write(",")
+                    log.write("{};".format(rb3lyp[item["Itineration"]].E))
                 i += 1
 
         if conflicted_lines != []:
