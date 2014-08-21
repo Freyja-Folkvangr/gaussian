@@ -200,6 +200,7 @@ def go():
         bocc = []
         avirt = []
         bvirt = []
+        condensed_matrix = []
         Standard_orientation = []
         steps = []
         points = []
@@ -211,8 +212,19 @@ def go():
             Line_number += 1
             n += 1
             if int(checkBox2_v.get()) == 1:
+                #
+                if "Condensed to atoms (all electrons):" in line and int(checkBox12_v.get()) == 1:
+                    import linecache
+                    j = 2
+                    while "Mulliken charges:" not in linecache.getline(file, Line_number + j):
+                        x, *y = linecache.getline(file, Line_number + j).split(" ")
+                        for item in y:
+                            if item == '' or item == ' ':
+                                y.remove(item)
+                        condensed_matrix.append(y)
+                        j += 1
                 #homo, lumo, orbitals, etc
-                if "Alpha  occ. eigenvalues" in line:
+                elif "Alpha  occ. eigenvalues" in line:
                     x, *y = line.split('--')
                     args = y[0].split(' ')
                     for item in args:
@@ -554,23 +566,6 @@ def go():
                     e=RB3LYP(rb3lyp[0] + 1, float(y[0]))
                     rb3lyp.append(e)
                     rb3lyp[0] += + 1
-                    '''
-                if "E(RB3LYP)" in line:
-                    x, *y = line.split('=')
-                    x, *y = y[0].split(' ')
-                    x = y
-                    y = []
-                    for item in x:
-                        if item != '' and item != ' ':
-                            y.append(item)
-                    print(y)
-                    try:
-                        rb3lyp.append(float(y[0]))
-                    except() as err:
-                        print (err)
-                        if verbose == True:
-                            log.write("{}\n".format(err))
-                '''
                 else: pass
 
             if "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
@@ -580,6 +575,8 @@ def go():
                                                                int(checkBox7_v.get()) == 1 or
                                                                int(checkBox9_v.get()) == 1):
 
+                print("matrix: {}".format(len(condensed_matrix)))
+                print(condensed_matrix)
                 if int(checkBox9_v.get()) == 1:
                     path.append(SP_points)
                     link_status = False
@@ -702,9 +699,9 @@ def go():
 
             log.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
             if int(checkBox11_v.get()) == 1:
-                log.write("No  Type    HOMO        LUMO         u                      Hn                    E(RB3LYP)\n")
+                log.write("No   Type     HOMO         LUMO         u                      Hn                    E(RB3LYP)\n")
             else:
-                log.write("//No,Type,HOMO,LUMO,u,Hn,E(RB3LYP);\n")
+                log.write("//No,HOMO,LUMO,u,Hn,E(RB3LYP);\n")
             i = 0
             for item in orbitals:
                 log.write("{}".format(item["Itineration"]))
@@ -712,9 +709,7 @@ def go():
                 if int(checkBox11_v.get()) == 1:
                     for i in range(0, 6 - len(str(item["Itineration"]))-1):
                         log.write(" ")
-                else:
-                    log.write(",")
-                log.write("{}".format(item["Type"]))
+                    log.write("{}".format(item["Type"]))
 
                 if int(checkBox11_v.get()) == 1:
                     for i in range (0, 8 - len(item["Type"]) - 1):
@@ -929,6 +924,11 @@ def main():
     checkBox11_v = IntVar()
     checkBox11_v.set(1)
     checkBox11 = Checkbutton(tab2, text="Report HOMO-LUMO summary as table", variable=checkBox11_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=8, column=0, columnspan=1)
+
+    global checkBox12_v
+    checkBox12_v = IntVar()
+    checkBox12_v.set(1)
+    checkBox12 = Checkbutton(tab2, text="Get 'Condensed to atoms' matrix", variable=checkBox12_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=9, column=0, columnspan=1)
 
     global checkBox10_v
     checkBox10_v = IntVar()
