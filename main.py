@@ -554,6 +554,23 @@ def go():
                     e=RB3LYP(rb3lyp[0] + 1, float(y[0]))
                     rb3lyp.append(e)
                     rb3lyp[0] += + 1
+                    '''
+                if "E(RB3LYP)" in line:
+                    x, *y = line.split('=')
+                    x, *y = y[0].split(' ')
+                    x = y
+                    y = []
+                    for item in x:
+                        if item != '' and item != ' ':
+                            y.append(item)
+                    print(y)
+                    try:
+                        rb3lyp.append(float(y[0]))
+                    except() as err:
+                        print (err)
+                        if verbose == True:
+                            log.write("{}\n".format(err))
+                '''
                 else: pass
 
             if "Normal termination of Gaussian" in line and (int(checkBox2_v.get()) == 1 or
@@ -684,28 +701,56 @@ def go():
                     else: pass
 
             log.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
-            log.write("No  Type    HOMO        LUMO         u                      Hn                    E(RB3LYP)\n")
+            if int(checkBox11_v.get()) == 1:
+                log.write("No  Type    HOMO        LUMO         u                      Hn                    E(RB3LYP)\n")
+            else:
+                log.write("//No,Type,HOMO,LUMO,u,Hn,E(RB3LYP);\n")
             i = 0
             for item in orbitals:
                 log.write("{}".format(item["Itineration"]))
-                for i in range(0, 6 - len(str(item["Itineration"]))-1):
-                    log.write(" ")
+
+                if int(checkBox11_v.get()) == 1:
+                    for i in range(0, 6 - len(str(item["Itineration"]))-1):
+                        log.write(" ")
+                else:
+                    log.write(",")
                 log.write("{}".format(item["Type"]))
-                for i in range (0, 6 - len(item["Type"]) - 1):
-                    log.write(" ")
-                log.write("  {}".format(item["HOMO"]))
-                for i in range(0, 9 - int(len(str(item["HOMO"]))) - 1):
-                    log.write(" ")
-                log.write("    {}".format(item["LUMO"]))
-                for i in range(0, 10 - len(str(item["LUMO"])) - 1):
-                    log.write(" ")
-                log.write("   {}".format(item["U"]))
-                for i in range(0, 23 - len(str(item["U"])) - 1):
-                    log.write(" ")
-                log.write("  {}".format(item["HN"]))
-                for i in range(0, 22 - len(str(item["HN"]))):
-                    log.write(" ")
-                log.write("{}\n".format(rb3lyp[item["Itineration"]].E))
+
+                if int(checkBox11_v.get()) == 1:
+                    for i in range (0, 8 - len(item["Type"]) - 1):
+                        log.write(" ")
+                else:
+                    log.write(",")
+                log.write("{}".format(item["HOMO"]))
+
+                if int(checkBox11_v.get()) == 1:
+                    for i in range(0, 13 - int(len(str(item["HOMO"]))) - 1):
+                        log.write(" ")
+                else:
+                    log.write(",")
+                log.write("{}".format(item["LUMO"]))
+
+                if int(checkBox11_v.get()) == 1:
+                    for i in range(0, 13 - len(str(item["LUMO"])) - 1):
+                        log.write(" ")
+                else:
+                    log.write(",")
+                log.write("{}".format(item["U"]))
+
+                if int(checkBox11_v.get()) == 1:
+                    for i in range(0, 25 - len(str(item["U"])) - 1):
+                        log.write(" ")
+                else:
+                    log.write(",")
+                log.write("{}".format(item["HN"]))
+
+                if int(checkBox11_v.get()) == 1:
+                    for i in range(0, 22 - len(str(item["HN"]))):
+                        log.write(" ")
+                    log.write("{}\n".format(rb3lyp[item["Itineration"]].E))
+                else:
+                    log.write(",")
+                    log.write("{};".format(rb3lyp[item["Itineration"]].E))
                 i += 1
 
         if conflicted_lines != []:
@@ -715,14 +760,6 @@ def go():
                 log.write("Conflictive lines: {}\n".format(conflicted_lines))
             else:
                 print("Errors found in these lines:\n{}\n\nTry turning on verbose mode to log the details.".format(conflicted_lines))
-        '''
-        with open("output.txt", "w", encoding="latin-1") as output:
-            #output.write("")
-            output.close()
-        with open("output.txt", "a", encoding="latin-1") as output:
-            output.write("{}\n".format(textBox2.get(1.0,END)))
-        print("All above has been saved in 'output.txt'")
-        '''
 
     try:
         with open(file, "r", encoding="latin-1") as f:
@@ -862,6 +899,10 @@ def main():
     button1 = Button(tab1, text="Open...", command=lambda:load_file()).grid(pady=2, sticky=NW, row=0, column=41)
     button2 = Button(tab1, text="Execute", command=lambda: initialize()).grid(pady=0, sticky=NW, column=41, row=1)
 
+    #button3.config(image=button3Image)
+    #button3.image = button3Image
+    #button3.configure(image=button3Image)
+
     # ========== CONSOLE ===========
     global textBox2
     textBox2_v = StringVar()
@@ -882,7 +923,12 @@ def main():
     global checkBox1_v
     checkBox1_v = IntVar()
     checkBox1_v.set(1)
-    checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0, state = DISABLED).grid(padx=0, pady=0, sticky=NW, row=6, column=0, columnspan=1)
+    checkBox1 = Checkbutton(tab2, text="Verbose mode", variable=checkBox1_v, onvalue=1, offvalue=0, state = DISABLED).grid(padx=0, pady=0, sticky=NW, row=7, column=0, columnspan=1)
+
+    global checkBox11_v
+    checkBox11_v = IntVar()
+    checkBox11_v.set(1)
+    checkBox11 = Checkbutton(tab2, text="Report HOMO-LUMO summary as table", variable=checkBox11_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=8, column=0, columnspan=1)
 
     global checkBox10_v
     checkBox10_v = IntVar()
