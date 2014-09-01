@@ -217,12 +217,15 @@ def go():
                     import linecache
                     j = 2
                     while "Mulliken charges:" not in linecache.getline(file, Line_number + j):
+                        matrix=[]
                         x, *y = linecache.getline(file, Line_number + j).split(" ")
-                        for item in y:
-                            if item == '' or item == ' ':
-                                y.remove(item)
-                        condensed_matrix.append(y)
+                        tmp = y[:]
+                        for item in tmp:
+                            if item != '' and item != ' ':
+                                y.append(item)
+                        matrix.append(y) #Append the matrix element
                         j += 1
+                    condensed_matrix.append(matrix) #Append all matrix elemnts to a list of matrixes
                 #homo, lumo, orbitals, etc
                 elif "Alpha  occ. eigenvalues" in line:
                     x, *y = line.split('--')
