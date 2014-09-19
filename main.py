@@ -1,12 +1,13 @@
 __doc__ = info = '''
 Created on Mar 26, 2014
 @author: giuliano
+@contact: g.tognarelli@icloud.com
 
 Tabbed interface script
 www.sunjay-varma.com
 
 See the changelog and download updates at:
-http://www.github.com/evergreen2/gaussian
+http://www.github.com/Freyja-Folkvangr/gaussian
 
 Please report any bug you may find in this program,
 verify your results and report any issue.
@@ -55,7 +56,7 @@ def checkfile(file):
         else:
             return True
     else:
-        load_file()
+        return False
 
 def load_file():
     import os.path
@@ -71,22 +72,14 @@ def load_file():
             fname = askopenfilename(filetypes=(("Density Files", "*.txt"),
                                            ("All files", "*.*")))
             file=fname
-            if os.path.exists(file):
-                textBox1_v.set(file)
-            else:
-                print("=======================ABORTED======================")
-                return False
+            textBox1_v.set(file)
         else:
             print("\n-> Open Gaussian log/output files (*.log or *.txt)")
             fname = askopenfilename(filetypes=(("*.log output files", "*.log"),
                                                ("*.txt output files", "*.txt"),
                                                ("All files", "*.*")))
             file=fname
-            if os.path.exists(file):
-                textBox1_v.set(file)
-            else:
-                print("=======================ABORTED======================")
-                return False
+            textBox1_v.set(file)
 
     except (RuntimeError, IOError) as inst:
             print ("There was an error while oppening the file.\n {}".format(file))
@@ -172,8 +165,130 @@ def to_element(atomic_number):
         else: pass
     return atomic_number
 
-def generate_multi_step(data, type='SP'):
-    pass
+def to_atomic_number(atomic_symbol):
+    for element in ELEMENTS:
+        if element.symbol == atomic_symbol:
+            return element.number
+        else: pass
+    return atomic_symbol
+
+def look_for_key(dict, val):
+    for key, value in dict.items():
+        if value == val:
+            return key
+
+def getAocc(line):
+    x, *y = line.split('--')
+    args = y[0].split(' ')
+    for item in args:
+        if item != '':
+            try:
+                yield(float(item))
+            except (ValueError) as err:
+                i = 0
+                tmp = ''
+                while i < len(item):
+                    if item[i] == '-':
+                        try: yield(float(tmp))
+                        except(ValueError): pass
+                        tmp = ''
+                        tmp += item[i]
+                    else:
+                        try:
+                            if int(item[i]) >= 0 or item[i] == '.':
+                                tmp += item[i]
+                        except(ValueError):
+                            if item[i] == '.':
+                                tmp += item[i]
+                            else:
+                                print("Unknown error! {}".format(line))
+                    i += 1
+                yield(float(tmp))
+
+def getAvirt(line):
+    x, *y = line.split('--')
+    args = y[0].split(' ')
+    for item in args:
+        if item != '':
+            try: yield(float(item))
+            except (ValueError) as err:
+                i = 0
+                tmp = ''
+                while i < len(item):
+                    if item[i] == '-':
+                        try: yield(float(tmp))
+                        except(ValueError): pass
+                        tmp = ''
+                        tmp += item[i]
+                    else:
+                        try:
+                            if int(item[i]) >= 0 or item[i] == '.':
+                                tmp += item[i]
+                        except(ValueError):
+                            if item[i] == '.':
+                                tmp += item[i]
+                            else:
+                                print("Unknown error! {}".format(line))
+                    i += 1
+                yield(float(tmp))
+        
+def getBocc(line):
+    x, *y = line.split('--')
+    args = y[0].split(' ')
+    for item in args:
+        if item != '':
+            try: yield(float(item))
+            except(ValueError) as err:
+                i = 0
+                tmp = ''
+                while i < len(item):
+                    if item[i] == '-':
+                        try: yield(float(tmp))
+                        except(ValueError): pass
+                        tmp = ''
+                        tmp += item[i]
+                    else:
+                        try:
+                            if int(item[i]) >= 0 or item[i] == '.':
+                                tmp += item[i]
+                        except(ValueError):
+                            if item[i] == '.': tmp += item[i]
+                            else:
+                                print("Unknown error! {}".format(line))
+                    i += 1
+                yield(float(tmp))
+
+def getBvirt(line):
+    x, *y = line.split('--')
+    args = y[0].split(' ')
+    for item in args:
+        if item != '':
+            try: yield(float(item))
+            except (ValueError) as err:
+                i = 0
+                tmp = ''
+                while i < len(item):
+                    if item[i] == '-':
+                        try: yield(float(tmp))
+                        except(ValueError): pass
+                        tmp = ''
+                        tmp += item[i]
+                    else:
+                        try:
+                            if int(item[i]) >= 0 or item[i] == '.':
+                                tmp += item[i]
+                        except(ValueError):
+                            if item[i] == '.':
+                                tmp += item[i]
+                            else:
+                                print("Unknown error! {}".format(line))
+                    i += 1
+                yield(float(tmp))
+
+def checkdir(dir):
+    import os
+    if not os.path.isdir(dir): os.makedirs(dir)
+    return
 
 def go():
     def process():
@@ -189,6 +304,11 @@ def go():
         Matrix_number = 0
         orbitals = []
         internal_angles = []
+        
+        fragmented_homo_lumo = []
+        fragment = {"aocc":[], "bocc":[], "avirt":[], "bvirt":[], "alpha":{}, "beta":{}, "E":None}
+        fragment_number = 0 #Overall
+        
         zMatrix = []
         conflicted_lines=[]
         ubhflyp=[int(0)]
@@ -200,6 +320,7 @@ def go():
         bocc = []
         avirt = []
         bvirt = []
+        
         condensed_matrix = []
         Standard_orientation = []
         steps = []
@@ -211,130 +332,123 @@ def go():
         for line in f:
             Line_number += 1
             n += 1
-            if int(checkBox2_v.get()) == 1:
-                #
+            if int(checkBox13_v.get()) == 1 and int(checkBox2_v.get()) == 1:
+                if "Counterpoise: doing DCBS calculation for fragment" in line:
+                    x, *z = line.split('Counterpoise: doing DCBS calculation for fragment')
+                    x, *y = z[0].split(' ')
+                    tmp = y[:]
+                    y = []
+                    for item in tmp:
+                        if item != '' and item != ' ':
+                            y.append(item)
+                    try:
+                        fragment["fragment"] = int(y[0])
+                        fragment["number"] = fragment_number
+                        fragment["counterpoise"] = "DCBS"
+                        fragment_number += 1
+                    except() as err:
+                        if verbose == True:
+                            log.write("=====\nCritical error at fragmented Homo-Lumo. Details below:\n{}\nPlease report.\n=====".format(err))
+                        else:
+                            print ("Critical error at fragmented Homo-Lumo.")
+                    import linecache
+                    j = 1
+                    while ("Counterpoise: doing" not in linecache.getline(file, Line_number + j) and 
+                           "calculation for fragment" not in linecache.getline(file, Line_number + j) or
+                           ()):
+                        if "E(RB3LYP)" in linecache.getline(file, Line_number + j):
+                            x, *y = linecache.getline(file, Line_number + j).split("=")
+                            x, *y = y[0].split(" ")
+                            tmp = y[:]
+                            y = []
+                            for item in tmp:
+                                if item != '' and item != ' ':
+                                    y.append(item)
+                            e=RB3LYP(None, float(y[0]))
+                            fragment["E"] = e
+                        elif "Alpha  occ. eigenvalues" in linecache.getline(file, Line_number + j):
+                            for item in getAocc(linecache.getline(file, Line_number + j)):
+                                fragment["aocc"].append(item)
+                        elif "Alpha virt. eigenvalues" in linecache.getline(file, Line_number + j):
+                            for item in getAvirt(linecache.getline(file, Line_number + j)):
+                                fragment["avirt"].append(item)
+                        elif "Beta  occ. eigenvalues" in linecache.getline(file, Line_number + j):
+                            for item in getBocc(linecache.getline(file, Line_number + j)):
+                                fragment["bocc"].append(item)
+                        elif "Beta virt. eigenvalues" in linecache.getline(file, Line_number + j):
+                            for item in getBvirt(linecache.getline(file, Line_number + j)):
+                                fragment["bvirt"].append(item)
+                        j += 1
+                        
+                    #Sort data in the correct order and then calculate Homo, Lumo, Hn and u for this fragment.
+                    fragment["bocc"].sort()
+                    fragment["bvirt"].sort()
+                    fragment["aocc"].sort()
+                    fragment["avirt"].sort()
+                    fragment["bocc"].reverse()
+                    fragment["bvirt"].reverse()
+                    
+                    #Memo: ["homo":None, "lumo":None, "u":None, "hn":None]
+                    if fragment["bocc"] != []:
+                        #Alpha
+                        fragment["alpha"]["homo"] = fragment["aocc"][len(fragment["aocc"]) - 1]
+                        fragment["alpha"]["lumo"] = fragment["avirt"][0]
+                        fragment["alpha"]["u"] = (fragment["avirt"][0] + fragment["aocc"][len(fragment["aocc"]) - 1]) * 0.5
+                        fragment["alpha"]["hn"] = fragment["avirt"][0] - fragment["aocc"][len(fragment["aocc"]) - 1]
+                        #Beta
+                        fragment["beta"]["homo"] = fragment["bocc"][len(fragment["bocc"]) - 1]
+                        fragment["beta"]["lumo"] = fragment["bvirt"][0]
+                        fragment["beta"]["u"] = (fragment["bvirt"][0] + fragment["bocc"][len(fragment["bocc"]) - 1]) * 0.5
+                        fragment["beta"]["hn"] = fragment["bvirt"][0] - fragment["bocc"][len(fragment["bocc"]) - 1]
+                    else:
+                        #Alpha
+                        fragment["alpha"]["homo"] = fragment["aocc"][len(fragment["aocc"]) - 1]
+                        fragment["alpha"]["lumo"] = fragment["avirt"][0]
+                        fragment["alpha"]["u"] = (fragment["avirt"][0] + fragment["aocc"][len(fragment["aocc"]) - 1]) * 0.5
+                        fragment["alpha"]["hn"] = fragment["avirt"][0] - fragment["aocc"][len(fragment["aocc"]) - 1]
+                        fragment["beta"] = None
+                    fragmented_homo_lumo.append(fragment)
+                    fragment = {"aocc":[], "bocc":[], "avirt":[], "bvirt":[], "alpha":{}, "beta":{}, "E":None}
+                        
+                        
+            elif int(checkBox2_v.get()) == 1 and int(checkBox13_v.get()) == 0:
                 if "Condensed to atoms (all electrons):" in line and int(checkBox12_v.get()) == 1:
                     import linecache
                     j = 2
+                    matrix=[]
                     while "Mulliken charges:" not in linecache.getline(file, Line_number + j):
-                        matrix=[]
                         x, *y = linecache.getline(file, Line_number + j).split(" ")
                         tmp = y[:]
+                        y=[]
                         for item in tmp:
                             if item != '' and item != ' ':
                                 y.append(item)
-                        matrix.append(y) #Append the matrix element
+                        k = 2
+                        values = []
+                        while k <= (len(y) - 1):
+                            values.append(float(y[k]))
+                            k += 1
+                        x = Condensed_atomm(int(y[0]),to_atomic_number(y[1]), values)
+                        if len(matrix) > 0:
+                            if x.atomic_number != matrix[len(matrix)-1].atomic_number:
+                                matrix.append(x)
+                        else:
+                            matrix.append(x)
                         j += 1
                     condensed_matrix.append(matrix) #Append all matrix elemnts to a list of matrixes
                 #homo, lumo, orbitals, etc
                 elif "Alpha  occ. eigenvalues" in line:
-                    x, *y = line.split('--')
-                    args = y[0].split(' ')
-                    for item in args:
-                        if item != '':
-                            try: aocc.append(float(item))
-                            except (ValueError) as err:
-                                i = 0
-                                tmp = ''
-                                while i < len(item):
-                                    if item[i] == '-':
-                                        try:
-                                            aocc.append(float(tmp))
-                                        except(ValueError): pass
-                                        tmp = ''
-                                        tmp += item[i]
-                                    else:
-                                        try:
-                                            if int(item[i]) >= 0 or item[i] == '.':
-                                                tmp += item[i]
-                                        except(ValueError):
-                                            if item[i] == '.':
-                                                tmp += item[i]
-                                            else:
-                                                print("Unknown error! {}".format(line))
-                                    i += 1
-                                aocc.append(float(tmp))
+                    for item in getAocc(line):
+                        aocc.append(item)
                 elif "Alpha virt. eigenvalues" in line:
-                    x, *y = line.split('--')
-                    args = y[0].split(' ')
-                    for item in args:
-                        if item != '':
-                            try: avirt.append(float(item))
-                            except (ValueError) as err:
-                                i = 0
-                                tmp = ''
-                                while i < len(item):
-                                    if item[i] == '-':
-                                        try:
-                                            avirt.append(float(tmp))
-                                        except(ValueError): pass
-                                        tmp = ''
-                                        tmp += item[i]
-                                    else:
-                                        try:
-                                            if int(item[i]) >= 0 or item[i] == '.':
-                                                tmp += item[i]
-                                        except(ValueError):
-                                            if item[i] == '.':
-                                                tmp += item[i]
-                                            else:
-                                                print("Unknown error! {}".format(line))
-                                    i += 1
-                                avirt.append(float(tmp))
+                    for item in getAvirt(line):
+                        avirt.append(item)
                 elif "Beta  occ. eigenvalues" in line:
-                    x, *y = line.split('--')
-                    args = y[0].split(' ')
-                    for item in args:
-                        if item != '':
-                            try: bocc.append(float(item))
-                            except(ValueError) as err:
-                                i = 0
-                                tmp = ''
-                                while i < len(item):
-                                    if item[i] == '-':
-                                        try:
-                                            bocc.append(float(tmp))
-                                        except(ValueError): pass
-                                        tmp = ''
-                                        tmp += item[i]
-                                    else:
-                                        try:
-                                            if int(item[i]) >= 0 or item[i] == '.':
-                                                tmp += item[i]
-                                        except(ValueError):
-                                            if item[i] == '.':
-                                                tmp += item[i]
-                                            else:
-                                                print("Unknown error! {}".format(line))
-                                    i += 1
-                                bocc.append(float(tmp))
+                    for item in getBocc(line):
+                        bocc.append(item)
                 elif "Beta virt. eigenvalues" in line:
-                    x, *y = line.split('--')
-                    args = y[0].split(' ')
-                    for item in args:
-                        if item != '':
-                            try: bvirt.append(float(item))
-                            except (ValueError) as err:
-                                i = 0
-                                tmp = ''
-                                while i < len(item):
-                                    if item[i] == '-':
-                                        try:
-                                            bvirt.append(float(tmp))
-                                        except(ValueError): pass
-                                        tmp = ''
-                                        tmp += item[i]
-                                    else:
-                                        try:
-                                            if int(item[i]) >= 0 or item[i] == '.':
-                                                tmp += item[i]
-                                        except(ValueError):
-                                            if item[i] == '.':
-                                                tmp += item[i]
-                                            else:
-                                                print("Unknown error! {}".format(line))
-                                    i += 1
-                                bvirt.append(float(tmp))
+                    for item in getBvirt(line):
+                        bvirt.append(item)
             if int(checkBox3_v.get()) == 1:
                 if "Standard orientation" in line:
                     import linecache
@@ -578,8 +692,8 @@ def go():
                                                                int(checkBox7_v.get()) == 1 or
                                                                int(checkBox9_v.get()) == 1):
 
-                print("matrix: {}".format(len(condensed_matrix)))
-                print(condensed_matrix)
+                
+                #print(condensed_matrix)
                 if int(checkBox9_v.get()) == 1:
                     path.append(SP_points)
                     link_status = False
@@ -595,14 +709,16 @@ def go():
                                     if link_status == True: multi_step.write("\n--Link1--\n")
                                     #multi_step.write("%chk=irc.chk\n")
                                     multi_step.write("%mem=6GB\n")
-                                    multi_step.write("# b3lyp/6-31g(d) nosymm scf=qc test\n\n")
+                                    multi_step.write("# b3lyp/6-31g(d) nosymm scf=qc test counterpoise=2\n\n")
                                     multi_step.write("SP {}\n\n".format(tmp))
-                                    multi_step.write("0 1\n")
+                                    multi_step.write("0 1, 0 1, 0 1\n")
                                     link_status = True
                                     #log.write("\n==============MATRIX FOR POINT {} AND PATH {}=============\n".format(point["Output"]["Point number"], point["Output"]["Path number"]))
+                                #counterpoise = 1
                                 for matrix_element in point["Input"]:
                                     if verbose == True:
-                                        multi_step.write("   {}    {}\n".format(to_element(matrix_element.atomic_number),matrix_element.coordinates))
+                                        multi_step.write("   {}    {}".format(to_element(matrix_element.atomic_number),matrix_element.coordinates))
+                    multi_step.write("\n\n\n\n\n\n")
                     SP_points = []
                     if verbose == True:
                         tmp=''
@@ -684,73 +800,129 @@ def go():
                     else:
                         pass
 
-            #if Energy[1] == 1: print("Hartree-Fock= {}".format(Energy[0]))
-            #if Energy[2] == 1: print("-Many HF found, see details in log file")
-
         if int(checkBox2_v.get()) == 1 and verbose == True:
-
             if rb3lyp != []:
-                log.write("\n=====================E(RB3LYP)=====================\n")
-                log.write("     Point                             Value\n")
+                checkdir(data_folder)
+                if int(checkBox11_v.get ()) == 0: extension = ".csv"
+                else: extension = ".txt"
+                erb3lyp_log = open(data_folder + "E(RB3LYP)" + extension, "w", encoding="UTF-8")
+                erb3lyp_log.write("")
+                erb3lyp_log.close()
+                erb3lyp_log = open(data_folder + "E(RB3LYP)" + extension, "a", encoding="UTF-8")
+                if int(checkBox11_v.get ()) == 1: erb3lyp_log.write("\n=====================E(RB3LYP)=====================\n")
                 print("\n=====================E(RB3LYP)=====================")
-                print("     Point                              Value")
+                print("     Number                              Value")
+                if int(checkBox11_v.get()) == 0:
+                    erb3lyp_log.write("Number,Value\n")
+                else:
+                    erb3lyp_log.write("     Point                             Value\n")
                 for item in rb3lyp:
-                    if isinstance(item, RB3LYP):
+                    if int(checkBox11_v.get()) == 0:
+                        if isinstance(item, RB3LYP):
+                            erb3lyp_log.write("{},{}\n".format(item.n, item.E))
                         print("     {}".format(item))
-                        log.write("     {}\n".format(item))
-                    else: pass
-
-            log.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
-            if int(checkBox11_v.get()) == 1:
-                log.write("No   Type     HOMO         LUMO         u                      Hn                    E(RB3LYP)\n")
+                    else:
+                        if isinstance(item, RB3LYP):
+                            print("     {}".format(item))
+                            erb3lyp_log.write("     {}".format(item))
+                            erb3lyp_log.write("\n")
+                erb3lyp_log.close()
+                            
+            if int(checkBox12_v.get()) == 1 and condensed_matrix != [] and verbose == 1:
+                #Condensed attoms
+                log.write("\n=====================CONDENSED ATTOMS=====================\n")
+                log.write("This are all Condensed Attom matrixes we found, but notice that we deleted all repeated rows.\n\n")
+                i = 0
+                for matrix in condensed_matrix:
+                    log.write("Matrix {}\n".format(i))
+                    for element in matrix:
+                        try:
+                            log.write("{} ".format(to_element(element.atomic_number)))
+                            for value in element.values:
+                                log.write("{} ".format(value))
+                            log.write("\n")
+                        except(UnicodeEncodeError) as err:
+                            print (err)
+                    log.write("\n\n")
+                    i += 1
+            if int(checkBox13_v.get()) == 1 and int(checkBox2_v.get()) == 1:
+                    log.write("Please report any bugs you may find!\n")
+                    log.write("Number,Fragment,Counterpoise,Energy,Homo,Lumo,u,hn\n")
+                    for fragment in fragmented_homo_lumo:
+                        if int(checkBox11_v.get()) == 0:
+                            if fragment["bocc"] != []:
+                                #Alpha
+                                log.write("{},{},{},{},{},{},{},{}\n".format(fragment["number"], fragment["fragment"], fragment["counterpoise"], fragment["E"].E, fragment["alpha"]["homo"], fragment["alpha"]["lumo"], fragment["alpha"]["u"], fragment["alpha"]["hn"]))
+                                #Beta
+                                log.write("{},{},{},{},{},{},{},{}\n".format(fragment["number"], fragment["fragment"], fragment["counterpoise"], fragment["E"].E, fragment["beta"]["homo"], fragment["beta"]["lumo"], fragment["beta"]["u"], fragment["beta"]["hn"]))
+                            else:
+                                #Just Alpha
+                                log.write("{},{},{},{},{},{},{},{}\n".format(fragment["number"], fragment["fragment"], fragment["counterpoise"], fragment["E"].E, fragment["alpha"]["homo"], fragment["alpha"]["lumo"], fragment["alpha"]["u"], fragment["alpha"]["hn"]))
+                        else:
+                            print("Showing counterpoise fragments as table is not supported, but CSV format. Please turn off 'Don't use CSV format for HOMO-LUMO'")
+                            break
+                    fragmented_homo_lumo = []
             else:
-                log.write("//No,HOMO,LUMO,u,Hn,E(RB3LYP);\n")
-            i = 0
-            for item in orbitals:
-                log.write("{}".format(item["Itineration"]))
-
+                if int(checkBox11_v.get()) == 0: extension = ".csv"
+                else: extension = ".txt"
+                import os
+                checkdir(data_folder)
+                homo_lumo = open(data_folder + "homo_lumo" + extension, "w", encoding="UTF-8")
+                homo_lumo.write("")
+                homo_lumo.close()
+                homo_lumo = open(data_folder + "homo_lumo" + extension, "a", encoding="UTF-8")
                 if int(checkBox11_v.get()) == 1:
-                    for i in range(0, 6 - len(str(item["Itineration"]))-1):
-                        log.write(" ")
-                    log.write("{}".format(item["Type"]))
-
-                if int(checkBox11_v.get()) == 1:
-                    for i in range (0, 8 - len(item["Type"]) - 1):
-                        log.write(" ")
+                    homo_lumo.write("=========================================================================\n=============================HOMO-LUMO SUMMARY===========================\n\n")
+                    homo_lumo.write("No   Type     HOMO         LUMO         u                      Hn                    E(RB3LYP)\n")
                 else:
-                    log.write(",")
-                log.write("{}".format(item["HOMO"]))
-
-                if int(checkBox11_v.get()) == 1:
-                    for i in range(0, 13 - int(len(str(item["HOMO"]))) - 1):
-                        log.write(" ")
-                else:
-                    log.write(",")
-                log.write("{}".format(item["LUMO"]))
-
-                if int(checkBox11_v.get()) == 1:
-                    for i in range(0, 13 - len(str(item["LUMO"])) - 1):
-                        log.write(" ")
-                else:
-                    log.write(",")
-                log.write("{}".format(item["U"]))
-
-                if int(checkBox11_v.get()) == 1:
-                    for i in range(0, 25 - len(str(item["U"])) - 1):
-                        log.write(" ")
-                else:
-                    log.write(",")
-                log.write("{}".format(item["HN"]))
-
-                if int(checkBox11_v.get()) == 1:
-                    for i in range(0, 22 - len(str(item["HN"]))):
-                        log.write(" ")
-                    log.write("{}\n".format(rb3lyp[item["Itineration"]].E))
-                else:
-                    log.write(",")
-                    log.write("{};".format(rb3lyp[item["Itineration"]].E))
-                i += 1
-
+                    homo_lumo.write("No,Type,HOMO,LUMO,u,Hn,E(RB3LYP)\n")
+                for item in orbitals:
+                    homo_lumo.write("{}".format(item["Itineration"]))
+    
+                    if int(checkBox11_v.get()) == 1:
+                        for i in range(0, 6 - len(str(item["Itineration"]))-1):
+                            homo_lumo.write(" ")
+                        homo_lumo.write("{}".format(item["Type"]))
+                    else:
+                        homo_lumo.write(",")
+                        homo_lumo.write("{}".format(item["Type"]))
+    
+                    if int(checkBox11_v.get()) == 1:
+                        for i in range (0, 8 - len(item["Type"]) - 1):
+                            homo_lumo.write(" ")
+                    else:
+                        homo_lumo.write(",")
+                    homo_lumo.write("{}".format(item["HOMO"]))
+    
+                    if int(checkBox11_v.get()) == 1:
+                        for i in range(0, 13 - int(len(str(item["HOMO"]))) - 1):
+                            homo_lumo.write(" ")
+                    else:
+                        homo_lumo.write(",")
+                    homo_lumo.write("{}".format(item["LUMO"]))
+    
+                    if int(checkBox11_v.get()) == 1:
+                        for i in range(0, 13 - len(str(item["LUMO"])) - 1):
+                            homo_lumo.write(" ")
+                    else:
+                        homo_lumo.write(",")
+                    homo_lumo.write("{}".format(item["U"]))
+    
+                    if int(checkBox11_v.get()) == 1:
+                        for i in range(0, 25 - len(str(item["U"])) - 1):
+                            homo_lumo.write(" ")
+                    else:
+                        homo_lumo.write(",")
+                    homo_lumo.write("{}".format(item["HN"]))
+    
+                    if int(checkBox11_v.get()) == 1:
+                        for i in range(0, 22 - len(str(item["HN"]))):
+                            homo_lumo.write(" ")
+                        homo_lumo.write("{}\n".format(rb3lyp[item["Itineration"]].E))
+                    else:
+                        homo_lumo.write(",")
+                        homo_lumo.write("{}\n".format(rb3lyp[item["Itineration"]].E))
+                homo_lumo.close()
         if conflicted_lines != []:
             print("========================ERROR=======================")
             if verbose == True:
@@ -786,7 +958,7 @@ def dualm(index):
     n = 0
     count = 0
     try:
-        with open(file, "r") as f:
+        with open(file, "r", encoding="latin-1") as f:
             for line in f:
                 if " \n" == line: count = 1
                 elif count == 1: count += 1
@@ -829,19 +1001,28 @@ def main():
     def initialize():
         textBox2.delete(1.0, END)
         print("========================START=======================")
+        if checkfile(file) == False:
+            print("File Not Found\n=======================ABORTED======================")
+            return False
         global verbose
         global checkBox1_v
         if int(checkBox1_v.get()) == 1:
             verbose = True
             global log
-            log = open("verbose.txt", "w")
+            x, *y = file.split("/")
+            verbose_file = "log_" + y[len(y) - 1] + ".txt"
+            global data_folder
+            data_folder = "data_" + y[len(y) - 1] + "/"
+            import os
+            checkdir("logs/")
+            log = open("logs/" + verbose_file, "w", encoding="UTF-8")
             from datetime import datetime
             log.write("=============================Gauss09 sAWK=============================\n#code's author: Giuliano Tognarelli Buono-core\n#{0}\n#Last run on ".format(file))
             log.write(datetime.now().strftime("%A %d/%m/%Y at %H:%M (dd/mm/yyyy)\n"))
             log.close()
-            log = open("verbose.txt", "a")
+            log = open("logs/" + verbose_file, "a", encoding="UTF-8")
             print("NOTE: Logs are turned on")
-            print("NOTE 2: Saving Gauss09 sAWK logs in 'verbose.txt'")
+            print("NOTE 2: Saving Gauss09 sAWK logs in 'logs/{}'".format(verbose_file))
             if int(checkBox9_v.get()) == 1: print("NOTE 3: Saving multi-step file as 'results.com'")
         else: verbose = False
         if int(checkBox8_v.get()) == 1 and (
@@ -854,9 +1035,7 @@ def main():
             print("========================ERROR=======================")
             print("If you want to enable Dual mode in Settings tab, you have to unselect all other options.\nJust Dual and Verbose are allowed to work together\n=======================ABORTED======================")
             return False
-        if checkfile(file) == False:
-            print("File Not Found\n=======================ABORTED======================")
-            return
+        
         import time
         t0 = time.time()
         if int(checkBox8_v.get()) == 1:
@@ -925,17 +1104,16 @@ def main():
 
     global checkBox11_v
     checkBox11_v = IntVar()
-    checkBox11_v.set(1)
-    checkBox11 = Checkbutton(tab2, text="Report HOMO-LUMO summary as table", variable=checkBox11_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=8, column=0, columnspan=1)
+    checkBox11_v.set(0)
+    checkBox11 = Checkbutton(tab2, text="Don't use CSV format for HOMO-LUMO", variable=checkBox11_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=8, column=0, columnspan=1)
 
     global checkBox12_v
     checkBox12_v = IntVar()
-    checkBox12_v.set(1)
-    checkBox12 = Checkbutton(tab2, text="Get 'Condensed to atoms' matrix", variable=checkBox12_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=9, column=0, columnspan=1)
+    checkBox12 = Checkbutton(tab2, text="Condensed to atoms matrix", variable=checkBox12_v, onvalue=1, offvalue=0, state = DISABLED).grid(padx=0, pady=0, sticky=NW, row=5, column=0, columnspan=1)
 
     global checkBox10_v
     checkBox10_v = IntVar()
-    checkBox10 = Checkbutton(tab2, text="Generate Multi-step", variable=checkBox10_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=6, column=1, columnspan=1)
+    checkBox10 = Checkbutton(tab2, text="Generate Multi-step", variable=checkBox10_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=5, column=1, columnspan=1)
 
     global checkBox2_v
     checkBox2_v = IntVar()
@@ -964,7 +1142,11 @@ def main():
     global checkBox8_v
     checkBox8_v = IntVar()
     checkBox8 = Checkbutton(tab2, text="Dual", state=DISABLED, variable=checkBox8_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=0, columnspan=1)
-
+    
+    global checkBox13_v
+    checkBox13_v = IntVar()
+    checkBox13 = Checkbutton(tab2, text="Counterpoise (Homo-Lumo)", variable=checkBox13_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=9, column=0, columnspan=1)
+    
     global checkBox9_v
     checkBox9_v = IntVar()
     checkBox9 = Checkbutton(tab2, text="SP: IRC Input Orientation", variable=checkBox9_v, onvalue=1, offvalue=0).grid(padx=0, pady=0, sticky=NW, row=4, column=1, columnspan=1)
