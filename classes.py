@@ -35,7 +35,7 @@ class UBHFLYP:
         return " {0.n}            {0.E}".format(self)
 
 class RB3LYP:
-    def __init__(self, n = 0, E = 0):
+    def __init__(self, n, E):
         self.E = E
         self.n = n
     def __str__(self):
@@ -68,3 +68,9 @@ class Angle:
         self.angle = angle
     def __str__(self):
         return "{0.combinations}            {0.angle}".format(self)
+
+class Condensed_atomm:
+    def __init__(self, row=0, atomic_number=0, values=[]):
+        self.row = row
+        self.atomic_number = atomic_number
+        self.values = values
